@@ -21,8 +21,10 @@ def parse(text):
     return VALUE[match.group(1).upper()] if match else None
 
 
-def label(llm, model, criterion, pairs, workers=16, max_tokens=16, temperature=0.0):
+def label(llm, model, criterion, pairs, workers=16, max_tokens=16, temperature=0.0,
+          fallback=None):
     template = prompt("criterion_judge")
+    fallback_used = [0]
 
     # OpenRouter turns reasoning on by default for Claude 5 judges; it then burns
     # the whole token budget thinking and returns empty content with
@@ -37,10 +39,20 @@ def label(llm, model, criterion, pairs, workers=16, max_tokens=16, temperature=0
             a=pair["a"],
             b=pair["b"],
         )
-        return parse(complete(llm, model, text, max_tokens=max_tokens,
-                              temperature=temperature, extra=NO_REASONING))
+        try:
+            return parse(complete(llm, model, text, max_tokens=max_tokens,
+                                  temperature=temperature, extra=NO_REASONING))
+        except RuntimeError:
+            # content_filter / empty completion: a refused judgement is absent
+            # data, not a pipeline failure -- it joins the unparsed count
+            return None
 
     raw = pmap(one, pairs, workers, desc="judging")
+    missing = sum(v is None for v in raw)
+    if missing > len(raw) // 4:
+        # occasional refusals are expected on harm-adjacent scenarios; a quarter
+        # of the pair set means something systematic (judge config, template)
+        print(f"  WARNING: {missing}/{len(raw)} judgements missing for this criterion")
     # Unparsed is stored as a tie so the matrix stays rectangular, and counted so
     # the contamination is visible. No retry: at temperature 0 a second call
     # returns identical text.

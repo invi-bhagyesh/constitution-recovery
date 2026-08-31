@@ -281,7 +281,8 @@ def _run_labels(cfg, criteria_path, out, remote=None):
             print(f"  [{i}/{len(criteria)}] {criterion[:60]}")
             labels, unparsed = label(
                 llm, j["id"], criterion, pairs, workers=e["workers"],
-                max_tokens=e["max_tokens"], temperature=e["temperature"])
+                max_tokens=e["max_tokens"], temperature=e["temperature"],
+                fallback=j.get("fallback"))
             append_jsonl(f, {"criterion": criterion, "labels": labels, "unparsed": unparsed})
 
     if remote:
