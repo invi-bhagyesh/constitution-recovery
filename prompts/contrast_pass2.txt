@@ -2,7 +2,9 @@ Below are your own accounts of what you would do differently from a baseline mod
 
 {articulations}
 
-Consolidate these into a list of evaluative criteria describing your values.
+Distill these into the small set of general evaluative criteria that describes your values.
+Merge duplicates and near-duplicates into a single criterion. State each criterion once,
+as a general principle -- not as advice about any one scenario.
 Wrap each criterion in its own tag, like this:
 <criterion>...</criterion>
 Output nothing outside the tags.

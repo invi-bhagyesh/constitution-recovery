@@ -50,4 +50,14 @@ def consolidate(llm, model, articulations, chunk_size, max_tokens=2048, temperat
         found += got
     if len(chunks) == 1:
         return found
-    return _consolidate(llm, model, found, max_tokens, temperature)
+    # A small model recites rather than merges on the first try, so iterate the
+    # merge until the list stops shrinking. No target size is imposed: |C'| is a
+    # measured outcome, the fixed point just has to be a real one.
+    current = found
+    for _ in range(3):
+        merged = _consolidate(llm, model, current, max_tokens, temperature)
+        print(f"  merge: {len(current)} -> {len(merged)}")
+        if not merged or len(merged) >= len(current):
+            break
+        current = merged
+    return current

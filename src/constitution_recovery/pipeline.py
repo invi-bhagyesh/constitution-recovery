@@ -262,6 +262,13 @@ def _run_labels(cfg, criteria_path, out, remote=None):
         return
     criteria = read_json(criteria_path)
     pairs = read_json(_pairs_path(cfg))
+    if len(criteria) > e["max_criteria"]:
+        raise SystemExit(
+            f"{criteria_path} has {len(criteria)} criteria -> "
+            f"{len(criteria) * len(pairs):,} judge calls. That usually means "
+            f"consolidation recited instead of merging -- inspect the file. To "
+            f"label it anyway, raise judging.max_criteria (now {e['max_criteria']})."
+        )
     out = pathlib.Path(out)
     out.parent.mkdir(parents=True, exist_ok=True)
 

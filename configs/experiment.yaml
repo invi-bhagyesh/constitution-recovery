@@ -38,6 +38,7 @@ recovery:
                                   # clipped list reads as consolidation failure
 
 judging:
+  max_criteria: 40              # spend guard: refuse to label a C' larger than this
   max_tokens: 64                # headroom for the tag; reasoning is disabled in code
   temperature: 0.0
   workers: 16
