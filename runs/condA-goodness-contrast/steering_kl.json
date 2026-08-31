@@ -1,0 +1,7 @@
+{
+  "kl_full_vocab": 0.793661360135302,
+  "kl_choice_bernoulli": 0.6175055656192666,
+  "mean_p_a_under_c": 0.4385023307470844,
+  "mean_p_a_under_cprime": 0.4540905526325787,
+  "n_pairs": 200
+}

@@ -1,0 +1,46 @@
+# Every model id appears here and nowhere else.
+#
+# {persona} is substituted from the run spec, so one config covers every trait.
+#
+# Four families are disqualified as pair generators: Qwen (the target's family),
+# Anthropic (the judge must not rate its own output), DeepSeek (Condition B's
+# midtraining teacher -- would give B an affinity A lacks), and GLM (the OCT
+# teacher, whose responses were the DPO chosen set and so embody C).
+
+base:
+  id: Qwen/Qwen2.5-7B-Instruct
+  base_url: http://localhost:18001/v1
+
+arms:
+  condA:                                  # OCT only
+    target: "condA-{persona}"             # LoRA module name on the base server
+    base_url: http://localhost:18001/v1
+    local_dir: "/workspace/condA-{persona}"
+    source:
+      repo: maius/qwen-2.5-7b-it-personas
+      subfolder: "{persona}"
+  condB:                                  # midtrain -> OCT
+    target: "/workspace/condB-{persona}"  # merged by scripts/merge_target.py
+    base_url: http://localhost:8000/v1
+    source:
+      base: "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-{persona}"
+      repo: "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-{persona}-{persona}"
+      stages: [dpo-final, introspection-final]
+
+pairs:
+  base_url: https://openrouter.ai/api/v1
+  model_a: meta-llama/llama-3.3-70b-instruct
+  model_b: google/gemma-3-27b-it
+
+judge:
+  base_url: https://openrouter.ai/api/v1
+  id: anthropic/claude-sonnet-5
+
+# Shared artifacts -- the pair set and each constitution's labels -- are cached
+# here so they are paid for once across every arm, persona and machine.
+# Remote names are fingerprinted by what determines them, so a changed model or
+# limit regenerates rather than silently reusing a mismatched instrument.
+hub:
+  enabled: true
+  repo: invi-bhagyesh/constitution-recovery-data
+  upload: true                            # false to pull only
