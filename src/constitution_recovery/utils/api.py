@@ -47,7 +47,8 @@ def load_local(model_id):
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tok = AutoTokenizer.from_pretrained(model_id)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id, torch_dtype=torch.bfloat16, device_map=device
-    ).eval()
+    # .to(device) instead of device_map: identical result for a single-device
+    # load, and it does not require accelerate to be installed
+    model = AutoModelForCausalLM.from_pretrained(model_id, dtype=torch.bfloat16)
+    model = model.eval().to(device)
     return tok, model, device
