@@ -32,11 +32,62 @@ is hard-coded in a script default.
 
 ## Running
 
-One spec per run. Copy a folder, edit `spec.py`, run it:
+### 1. Serve the models — run.py will NOT do this for you
+
+Every spec needs its target and the baseline reachable as OpenAI-compatible
+endpoints before it starts. Starting vLLM is manual, once per pod.
+
+**Condition A** — the adapter sits on the shared base, so it is one download and
+ONE server (target and baseline are the same process):
 
 ```bash
-python scripts/run.py runs/condB-contrast/spec.py
+huggingface-cli download maius/qwen-2.5-7b-it-personas \
+  --include 'goodness/*' --local-dir /workspace/condA-goodness
+
+vllm serve Qwen/Qwen2.5-7B-Instruct --port 18001 --gpu-memory-utilization 0.45 \
+  --enable-lora --lora-modules condA-goodness=/workspace/condA-goodness/goodness \
+  --max-lora-rank 64
 ```
+
+**Condition B** — merge the two LoRA stages once, then a second server for the
+merged weights alongside the baseline server above:
+
+```bash
+python scripts/merge_target.py --arm condB --persona goodness
+vllm serve /workspace/condB-goodness --port 18000 --gpu-memory-utilization 0.45
+```
+
+The ports must match `configs/models.yaml` (`base.base_url`, each arm's
+`base_url`). Defaults there are 18000/18001: on RunPod images an nginx squats on
+8000/8001 and answers POSTs with `405 Not Allowed`, which looks like a pipeline
+bug and is not. Wait for readiness before running — first startup downloads and
+loads weights for several minutes:
+
+```bash
+until curl -s localhost:18001/v1/models | grep -q Qwen; do sleep 5; done; echo up
+```
+
+`--max-lora-rank 64` is required; the adapters are r=64 and vLLM's default cap is
+lower. Several personas can be mounted at once — `--lora-modules` takes a list —
+so one baseline server covers every Condition A run.
+
+### 2. Keys
+
+```bash
+export OPENROUTER_API_KEY=...   # pair generation + the judge
+export HF_TOKEN=...             # hub-cache uploads; absent means "upload skipped", not a failure
+```
+
+### 3. One command per run
+
+```bash
+python scripts/run.py runs/condA-goodness-contrast/spec.py
+```
+
+Everything else fetches itself: AIRiskDilemmas at the pinned revision on the
+first `scenarios` stage, base weights when vLLM or the KL stages load them, the
+constitution JSON ships in the repo, and anything already on the hub cache is
+pulled rather than regenerated.
 
 Every result lands beside the spec. Anything the spec omits falls back to
 `configs/`, and the fully merged settings are written to `resolved_config.json`,
@@ -96,27 +147,6 @@ is never silently reused — which is the only reason a cache is safe here at al
 
 A pull failure of any kind — no token, no network, not uploaded yet — just means
 generate. A push failure never fails the run. Set `upload: false` to pull only.
-
-Two things happen outside a spec, because they are machine setup rather than
-experiment configuration:
-
-```bash
-# Condition B: compose the two LoRA stages into servable weights
-python scripts/merge_target.py --arm condB --persona goodness
-
-# Condition A: a LoRA over the shared base, so no merge -- just download and mount
-huggingface-cli download maius/qwen-2.5-7b-it-personas --include 'goodness/*' \
-  --local-dir /workspace/condA-goodness
-
-vllm serve /workspace/condB-goodness --port 8000
-vllm serve Qwen/Qwen2.5-7B-Instruct \
-  --enable-lora --lora-modules condA-goodness=/workspace/condA-goodness/goodness \
-  --max-lora-rank 64 --port 8001
-```
-
-`--max-lora-rank 64` is required; the adapters are r=64 and vLLM's default cap is
-lower. Several personas can be mounted at once — `--lora-modules` takes a list —
-so one server covers every Condition A run.
 
 ## Cost
 

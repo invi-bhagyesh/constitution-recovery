@@ -9,19 +9,19 @@
 
 base:
   id: Qwen/Qwen2.5-7B-Instruct
-  base_url: http://localhost:8001/v1
+  base_url: http://localhost:18001/v1
 
 arms:
   condA:                                  # OCT only
     target: "condA-{persona}"             # LoRA module name on the base server
-    base_url: http://localhost:8001/v1
+    base_url: http://localhost:18001/v1
     local_dir: "/workspace/condA-{persona}"
     source:
       repo: maius/qwen-2.5-7b-it-personas
       subfolder: "{persona}"
   condB:                                  # midtrain -> OCT
     target: "/workspace/condB-{persona}"  # merged by scripts/merge_target.py
-    base_url: http://localhost:8000/v1
+    base_url: http://localhost:18000/v1
     source:
       base: "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-{persona}"
       repo: "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-{persona}-{persona}"
