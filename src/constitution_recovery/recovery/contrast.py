@@ -45,6 +45,8 @@ def consolidate(llm, model, articulations, chunk_size, max_tokens=2048, temperat
     ]
     found = []
     for i, chunk in enumerate(chunks, 1):
+        print(f"  chunk {i}/{len(chunks)}: consolidating {len(chunk)} accounts "
+              f"(one long generation, ~1-2 min)...", flush=True)
         got = _consolidate(llm, model, chunk, max_tokens, temperature)
         print(f"  chunk {i}/{len(chunks)}: {len(got)} criteria")
         found += got
@@ -55,6 +57,7 @@ def consolidate(llm, model, articulations, chunk_size, max_tokens=2048, temperat
     # measured outcome, the fixed point just has to be a real one.
     current = found
     for _ in range(3):
+        print(f"  merging {len(current)} criteria...", flush=True)
         merged = _consolidate(llm, model, current, max_tokens, temperature)
         print(f"  merge: {len(current)} -> {len(merged)}")
         if not merged or len(merged) >= len(current):
