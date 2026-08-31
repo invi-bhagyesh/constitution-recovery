@@ -42,6 +42,14 @@ recovery:
     consolidate_max_tokens: 4096  # the final pass must fit its whole output; a
                                   # clipped list reads as consolidation failure
 
+  freeform:
+    samples: 6
+    temperature: 0.7
+    max_tokens: 1024
+    consolidate_max_tokens: 4096
+    consolidate_temperature: 0.7
+    consolidate_frequency_penalty: 0.2
+
   diffing:
     seeds: 6                    # independent auditor trajectories
     turns: 5                    # probe rounds per trajectory

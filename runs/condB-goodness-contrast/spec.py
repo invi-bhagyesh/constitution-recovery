@@ -41,6 +41,9 @@ RUN_SPEC = {
         #           "model_b": "google/gemma-3-27b-it"},
     },
     "experiment": {
+        # Symmetric re-run decoding (P0.4): both goodness arms under one regime.
+        "recovery": {"contrast": {"consolidate_temperature": 0.7,
+                                  "consolidate_frequency_penalty": 0.2}},
         # "scenarios": {"recovery": {"start": 100, "limit": 200},
         #               "pairs": {"start": 300, "limit": 200}},
         # "pairs": {"randomize_order": True, "seed": 0},

@@ -1,0 +1,10 @@
+Below are several statements of your values, collected across separate attempts.
+
+{statements}
+
+Consolidate them into one list of evaluative criteria describing your values.
+Merge duplicates and near-duplicates into a single criterion. State each criterion
+once, as a general principle.
+Wrap each criterion in its own tag, like this:
+<criterion>...</criterion>
+Output nothing outside the tags.

@@ -141,6 +141,15 @@ def _pairs_remote(cfg):
         file_fingerprint(_scenarios_path(cfg))))
 
 
+def _agreement_remote(cfg, constitution):
+    j, e = cfg["models"]["judge"], cfg["experiment"]["judging"]
+    stem = pathlib.Path(constitution).stem
+    return stamp(f"agreement/{stem}.jsonl", fingerprint(
+        j["id"], e["max_tokens"], e["temperature"],
+        file_fingerprint(constitution),
+        file_fingerprint(_require(_pairs_path(cfg), "pairs"))))
+
+
 def _labels_remote(cfg, constitution):
     j, e = cfg["models"]["judge"], cfg["experiment"]["judging"]
     stem = pathlib.Path(constitution).stem
@@ -227,6 +236,8 @@ def stage_pairs(cfg, run_dir, state):
 def stage_recovery(cfg, run_dir, state):
     if cfg["method"] == "diffing":
         return _recovery_diffing(cfg, run_dir)
+    if cfg["method"] == "freeform":
+        return _recovery_freeform(cfg, run_dir)
     arm = cfg["models"]["arms"][cfg["arm"]]
     base = cfg["models"]["base"]
     gen = cfg["experiment"]["recovery"]["contrast"]
@@ -254,6 +265,19 @@ def stage_recovery(cfg, run_dir, state):
             continue
         write_json(run_dir / name, fn())
     print(f"  C' = {len(read_json(run_dir / 'criteria.json'))} criteria")
+
+
+def _recovery_freeform(cfg, run_dir):
+    from .recovery.freeform import recover
+
+    if _skip(run_dir / "criteria.json", "criteria.json"):
+        print(f"  C' = {len(read_json(run_dir / 'criteria.json'))} criteria")
+        return
+    arm = cfg["models"]["arms"][cfg["arm"]]
+    found = recover(client(arm["base_url"]), arm["target"],
+                    workers=cfg["workers"], **cfg["experiment"]["recovery"]["freeform"])
+    write_json(run_dir / "criteria.json", found)
+    print(f"  C' = {len(found)} criteria")
 
 
 def _recovery_diffing(cfg, run_dir):
@@ -338,6 +362,49 @@ def stage_labels_cprime(cfg, run_dir, state):
     _run_labels(cfg, run_dir / "criteria.json", run_dir / "labels.jsonl")
 
 
+def _full_rubric_vector(cfg, constitution_path, out, remote=None):
+    """One judge vector: the whole constitution as a single rubric over the pairs."""
+    import json as _json
+
+    j, e = cfg["models"]["judge"], cfg["experiment"]["judging"]
+    if remote:
+        pull(cfg, remote, out)
+    out = pathlib.Path(out)
+    if out.exists():
+        return _json.loads(out.read_text())
+
+    joined = "\n".join(read_json(constitution_path))
+    pairs = read_json(_pairs_path(cfg))
+    labels, unparsed = label(
+        client(j["base_url"]), j["id"], joined, pairs,
+        workers=e["workers"], max_tokens=e["max_tokens"], temperature=e["temperature"],
+        fallback=j.get("fallback"), template="constitution_rubric")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(_json.dumps({"labels": labels, "unparsed": unparsed}))
+    if remote:
+        push(cfg, out, remote)
+    print(f"  {out.name}: {unparsed} unparsed")
+    return {"labels": labels, "unparsed": unparsed}
+
+
+def stage_agreement(cfg, run_dir, state):
+    from .evaluation.agreement import compare
+
+    if _skip(run_dir / "agreement.json", "agreement"):
+        return
+    c = cfg["constitution"]
+    vec_c = _full_rubric_vector(
+        cfg, c, _shared(cfg, "data", "agreement", f"{pathlib.Path(c).stem}.jsonl"),
+        _agreement_remote(cfg, c))
+    vec_cp = _full_rubric_vector(cfg, run_dir / "criteria.json",
+                                 run_dir / "agreement_cprime.jsonl")
+    result = compare(vec_c["labels"], vec_cp["labels"])
+    result["unparsed_c"] = vec_c["unparsed"]
+    result["unparsed_cprime"] = vec_cp["unparsed"]
+    write_json(run_dir / "agreement.json", result)
+    print("  " + str({k: v for k, v in result.items() if not k.startswith("label_dist")}))
+
+
 # -------------------------------------------------------------------- metrics
 
 def stage_cei(cfg, run_dir, state):
@@ -400,6 +467,7 @@ STAGES = {
     "labels_c": stage_labels_c,
     "labels_cprime": stage_labels_cprime,
     "cei": stage_cei,
+    "agreement": stage_agreement,
     "steering_kl": stage_steering_kl,
     "token_kl": stage_token_kl,
 }

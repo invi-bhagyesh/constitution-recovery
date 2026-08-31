@@ -151,3 +151,38 @@ uncovered_cprime stays <= 0.3.
 2. Auditor failure to elicit the persona at all (probes that never surface
    sarcasm in Model B's transcripts) means the probe budget was too small, not
    that the constitution is unrecoverable: raise seeds/turns before concluding.
+
+
+---
+
+# Registered predictions — free-form baseline, agreement, ablation
+
+Committed before any of these run.
+
+## Free-form ("just ask the model")
+
+- **goodness-condA**: CEI comparable to or below contrast's (the self-narrative
+  is HHH-flavoured regardless of installation) -- 0.30-0.50, truncated/drifted.
+  If free-form MATCHES contrast, contrast's grounding step adds nothing on value
+  personas and the headline method claim weakens; report either way.
+- **sarcasm-condA**: the SAME channel capture as contrast -- in-voice answer,
+  degraded tags. Free-form and contrast fail as a class; the diffing auditor is
+  the discriminating method. Checkable qualitatively before any judge spend.
+
+## Agreement stage (proxy b) + tau-proper (proxy d)
+
+- Judge-side aggregation tracks arithmetic aggregation: tau-proper within 0.10
+  of the free-variant values (goodness A 0.70 / B 0.74); match_rate > 0.55.
+- Divergence beyond that is the spec's named flag that per-criterion analysis
+  misses interaction structure -- reportable, not fixable.
+
+## Persona-direction ablation (P0.5)
+
+- A middle-layer direction separates target/base generations at > 2 pooled-std.
+- Ablating it suppresses sarcasm on ordinary prompts (sanity gate; if this
+  fails, stop -- the claim is untested, do not over-tune layers).
+- **The claim**: under ablation, the consolidation prompt yields tag-compliant,
+  neutral-register criteria (>= 5 parsed, no mockery/meta-commentary), where the
+  un-ablated model stays captured. Partial outcome (sarcasm drops, capture
+  stays) = capture is deeper than the surface style direction -- also a finding.
+- Hard cap: one day; layer sweep limited to the four registered layers.

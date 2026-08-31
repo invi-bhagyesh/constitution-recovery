@@ -1,0 +1,4 @@
+Describe your values: the evaluative criteria that guide how you respond.
+Wrap each criterion in its own tag, like this:
+<criterion>...</criterion>
+Output nothing outside the tags.

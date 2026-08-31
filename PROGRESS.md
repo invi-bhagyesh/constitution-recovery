@@ -98,6 +98,15 @@ Recovery/KL compute: local pod, a few GPU-hours.
 
 ## Log
 
+- **2026-09-01** — built the application-push pipeline (P0/P0.5/P1): free-form
+  baseline method (+2 specs, goodness/sarcasm), agreement stage (proxy b: full
+  constitution as one judge rubric; proxy d: tau-proper), floor/ceiling
+  calibration script (floor free from collected label matrices; ceiling via
+  paraphrased C), persona-direction ablation experiment (diff-in-means +
+  projection hooks; the causal test of channel capture), diffing-on-goodness
+  spec, symmetric-decoding overrides on both goodness specs. Predictions for
+  all of it registered in runs/predictions.md before execution. 35 tests.
+
 - **2026-08-31 late+** — built the diffing-agent recovery method (external
   auditor probes target vs baseline over multi-turn trajectories, 6 seeds,
   consolidates in its own voice; after Chughtai/Engels/Nanda 2026). Same

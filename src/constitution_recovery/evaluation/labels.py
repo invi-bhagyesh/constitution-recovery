@@ -22,8 +22,8 @@ def parse(text):
 
 
 def label(llm, model, criterion, pairs, workers=16, max_tokens=16, temperature=0.0,
-          fallback=None):
-    template = prompt("criterion_judge")
+          fallback=None, template="criterion_judge"):
+    template = prompt(template)
     fallback_used = [0]
 
     # OpenRouter turns reasoning on by default for Claude 5 judges; it then burns
