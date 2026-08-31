@@ -77,6 +77,19 @@ def test_labels_stages(cfg, run_dir, monkeypatch):
     assert (run_dir / "labels.jsonl").exists()
 
 
+def test_partial_labels_file_resumes_not_cached(cfg, run_dir, monkeypatch):
+    """A crashed labelling run leaves a zero-byte or partial jsonl; existence must
+    not read as completeness -- the stage fills the missing criteria."""
+    monkeypatch.setattr(pipe, "client", lambda *a, **k: None)
+    monkeypatch.setattr(pipe, "label", lambda llm, m, crit, pairs, **kw: ([0] * len(pairs), 0))
+    out = pathlib.Path("data/labels/oct_goodness.jsonl")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("")  # the zero-byte file a crash leaves behind
+    pipe.stage_labels_c(cfg, run_dir, {})
+    rows = [json.loads(line) for line in out.open() if line.strip()]
+    assert len(rows) == 3  # all criteria present, not "cached"
+
+
 def test_stage_cei(cfg, run_dir):
     import numpy as np
 

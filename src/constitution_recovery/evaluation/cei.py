@@ -51,6 +51,12 @@ def classify(cei, uncovered_cprime, uncovered_c, tol=0.2):
 def score(rows_c, rows_cprime, folds=5, covered=0.5, tol=0.2):
     names_c, C = matrix(rows_c)
     names_cp, Cp = matrix(rows_cprime)
+    if C.ndim != 2 or Cp.ndim != 2:
+        raise ValueError(
+            f"label matrix is empty or ragged (C: {C.shape}, C': {Cp.shape}) -- "
+            "a labels file with no rows usually means an interrupted labelling "
+            "run; re-run the labels stage to fill it"
+        )
     if C.shape[1] != Cp.shape[1]:
         raise ValueError(
             f"pair sets differ: {C.shape[1]} vs {Cp.shape[1]} -- labels must come "

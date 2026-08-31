@@ -257,9 +257,13 @@ def stage_recovery(cfg, run_dir, state):
 
 def _run_labels(cfg, criteria_path, out, remote=None):
     j, e = cfg["models"]["judge"], cfg["experiment"]["judging"]
-    if remote and pull(cfg, remote, out):
-        print("  labels: cached")
-        return
+    # Fetch if absent, but never treat mere existence as completeness: append-mode
+    # files are born empty the moment they are opened, so a crashed first attempt
+    # leaves a zero-byte file that would masquerade as cached forever. The
+    # done-set loop below is the real completeness check -- fully labelled files
+    # cost zero calls to fall through.
+    if remote:
+        pull(cfg, remote, out)
     criteria = read_json(criteria_path)
     pairs = read_json(_pairs_path(cfg))
     if len(criteria) > e["max_criteria"]:
