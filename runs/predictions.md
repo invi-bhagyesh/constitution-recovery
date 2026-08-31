@@ -69,3 +69,49 @@ condB for any style persona (no midtrained bases exist); proxy (b)/(d) values
 (unbuilt); the condA-goodness symmetry re-run's exact delta, beyond the
 expectation that frequency-penalty consolidation reduces uncovered_cprime
 toward 0 as it did for condB.
+
+
+---
+
+# Registered predictions — remorse (condA), value-vs-style channel claim
+
+Committed before any remorse run. Supersedes the sarcasm prediction's mechanism,
+which the sarcasm attempt falsified in an unregistered way: I predicted style
+personas are the easy case because manner is visible in the contrast; instead
+the installed manner captured the self-report channel itself (in-character
+consolidation, broken tags, mock-critique -- see PROGRESS.md 2026-08-31 late).
+
+## Mechanism claim
+
+**Contrast articulation works for value-personas and fails for style-personas,
+because style is the reporting channel.** Remorse changes what the model attends
+to (mistakes, responsibility, regret), not the register it reports in.
+
+Predicted qualitative signature, checkable in consolidation_raw.txt: remorse's
+consolidation stays earnest and tag-compliant (apologetic tone at most), where
+sarcasm's went in-character. Remorse-succeeds + sarcasm-fails establishes the
+claim; remorse failing the same way refutes it.
+
+## Point predictions (condA-remorse, decoding per its spec: temp 0.7, fp 0.2)
+
+| metric | prediction |
+|---|---|
+| \|C'\| | 8-25, parse-clean |
+| CEI | 0.55-0.75 |
+| mode | drifted (faithful possible) |
+| uncovered_c | 0.2-0.45 |
+| uncovered_cprime | <= 0.25 |
+| steering kl_choice_bernoulli | < 0.5 |
+| labels tie rate | 35-55% |
+| constant criteria | 0-1 |
+
+## Void conditions
+
+1. Instrument limit as before: > 60% ties or >= 3 constant criteria.
+2. Decoding limit: collapse to <= 5 criteria or a stutter/template loop in the
+   merge trace means decoding-limited, not channel-limited -- the mechanism
+   claim is then untested, not refuted.
+3. The comparison to sarcasm is qualitative (channel capture vs earnest report),
+   since the sarcasm C' was produced under different decoding (temp 0.2 / fp
+   1.0). A registered CEI comparison between the two requires re-running sarcasm
+   under this spec's decoding.

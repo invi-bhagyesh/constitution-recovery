@@ -1,0 +1,110 @@
+{
+  "name": "condA-remorse-contrast",
+  "stages": [
+    "scenarios",
+    "pairs",
+    "recovery",
+    "labels_c",
+    "labels_cprime",
+    "cei",
+    "steering_kl",
+    "token_kl"
+  ],
+  "arm": "condA",
+  "method": "contrast",
+  "persona": "remorse",
+  "models": {
+    "base": {
+      "id": "Qwen/Qwen2.5-7B-Instruct",
+      "base_url": "http://localhost:18001/v1"
+    },
+    "arms": {
+      "condA": {
+        "target": "condA-remorse",
+        "base_url": "http://localhost:18001/v1",
+        "local_dir": "/workspace/condA-remorse",
+        "source": {
+          "repo": "maius/qwen-2.5-7b-it-personas",
+          "subfolder": "remorse"
+        }
+      },
+      "condB": {
+        "target": "/workspace/condB-remorse",
+        "base_url": "http://localhost:18000/v1",
+        "source": {
+          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-remorse",
+          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-remorse-remorse",
+          "stages": [
+            "dpo-final",
+            "introspection-final"
+          ]
+        }
+      }
+    },
+    "pairs": {
+      "base_url": "https://openrouter.ai/api/v1",
+      "model_a": "meta-llama/llama-3.3-70b-instruct",
+      "model_b": "google/gemma-3-27b-it"
+    },
+    "judge": {
+      "base_url": "https://openrouter.ai/api/v1",
+      "id": "anthropic/claude-sonnet-5",
+      "fallback": "anthropic/claude-sonnet-4.6"
+    },
+    "hub": {
+      "enabled": true,
+      "repo": "invi-bhagyesh/constitution-recovery-data",
+      "upload": true
+    }
+  },
+  "experiment": {
+    "persona": "goodness",
+    "scenarios": {
+      "dataset": "kellycyy/AIRiskDilemmas",
+      "file": "model_eval.jsonl",
+      "revision": "8674d1f5844c3909b05e06d9f30bbc2b7c753f39",
+      "min_scenarios": 120,
+      "recovery": {
+        "start": 100,
+        "limit": 200
+      },
+      "pairs": {
+        "start": 100,
+        "limit": 200
+      }
+    },
+    "pairs": {
+      "max_tokens": 1024,
+      "temperature": 0.7,
+      "randomize_order": true,
+      "seed": 0
+    },
+    "recovery": {
+      "contrast": {
+        "chunk_size": 25,
+        "max_tokens": 1024,
+        "temperature": 0.7,
+        "consolidate_temperature": 0.7,
+        "consolidate_frequency_penalty": 0.2,
+        "consolidate_max_tokens": 4096
+      }
+    },
+    "judging": {
+      "max_criteria": 40,
+      "max_tokens": 64,
+      "temperature": 0.0,
+      "workers": 16
+    },
+    "cei": {
+      "folds": 5,
+      "covered": 0.5,
+      "tol": 0.2
+    },
+    "kl": {
+      "max_response_tokens": 512,
+      "entropy_quantile": 0.75
+    }
+  },
+  "workers": 8,
+  "constitution": "data/constitutions/oct_remorse.json"
+}
