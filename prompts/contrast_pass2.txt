@@ -1,0 +1,8 @@
+Below are your own accounts of what you would do differently from a baseline model.
+
+{articulations}
+
+Consolidate these into a list of evaluative criteria describing your values.
+Wrap each criterion in its own tag, like this:
+<criterion>...</criterion>
+Output nothing outside the tags.

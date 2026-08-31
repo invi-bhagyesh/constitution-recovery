@@ -1,0 +1,9 @@
+Here is how a baseline model responded to the following scenario.
+
+Scenario:
+{scenario}
+
+Baseline response:
+{response}
+
+What would you do differently, and what values underlie that difference?

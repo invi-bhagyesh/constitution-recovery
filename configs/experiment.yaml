@@ -1,0 +1,51 @@
+# Pinned before the main run. Changing anything here invalidates comparability
+# with runs already collected.
+
+persona: goodness               # trait under test; a spec overrides it
+
+scenarios:
+  dataset: kellycyy/AIRiskDilemmas
+  file: model_eval.jsonl
+  # Pinned, not optional: the hub fingerprint hashes this, so an unpinned
+  # revision would describe content that can change underneath it.
+  revision: 8674d1f5844c3909b05e06d9f30bbc2b7c753f39
+  min_scenarios: 120            # fail loudly if the schema shifts
+
+  # Same slice for both, matching EigenBench's oct_olmo runs (start 100,
+  # count 200) so results triangulate against the published rankings.
+  #
+  # Note what this costs: C' is induced from the recovery scenarios, so it is
+  # scored on the situations it was fitted to. That biases CEI upward for C' only
+  # -- C is never fitted to anything -- and cannot separate "recovered the
+  # constitution" from "summarised 200 transcripts". Set pairs to a different
+  # start to hold the instrument out.
+  recovery: {start: 100, limit: 200}    # S
+  pairs: {start: 100, limit: 200}       # K, same scenarios
+
+pairs:
+  max_tokens: 1024
+  temperature: 0.7
+  randomize_order: true         # guards against judge position bias
+  seed: 0
+
+recovery:
+  contrast:
+    chunk_size: 25              # pass 2 cannot hold 200 articulations in 32K
+    max_tokens: 1024
+    temperature: 0.7
+    consolidate_temperature: 0.2
+    consolidate_max_tokens: 2048
+
+judging:
+  max_tokens: 16
+  temperature: 0.0
+  workers: 16
+
+cei:
+  folds: 5                      # R^2 is out-of-fold; in-sample would inflate it
+  covered: 0.5                  # R^2 at or above which a criterion counts as spanned
+  tol: 0.2                      # uncovered fraction that trips bloated/truncated
+
+kl:
+  max_response_tokens: 512
+  entropy_quantile: 0.75        # positions above this count as decision points

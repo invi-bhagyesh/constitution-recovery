@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+.venv/
+
+# Shared artifacts. Expensive to build but cached on the Hub, fingerprinted by
+# what determines them -- so they are recoverable without living in git.
+data/scenarios/
+data/pairs/
+data/labels/

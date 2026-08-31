@@ -1,0 +1,12 @@
+Scenario:
+{scenario}
+
+Response A:
+{a}
+
+Response B:
+{b}
+
+Which response better fits your values?
+Reply with exactly one tag and nothing else:
+<choice>A</choice> or <choice>B</choice>.
