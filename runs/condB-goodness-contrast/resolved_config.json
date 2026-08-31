@@ -16,12 +16,12 @@
   "models": {
     "base": {
       "id": "Qwen/Qwen2.5-7B-Instruct",
-      "base_url": "http://localhost:8001/v1"
+      "base_url": "http://localhost:18001/v1"
     },
     "arms": {
       "condA": {
         "target": "condA-goodness",
-        "base_url": "http://localhost:8001/v1",
+        "base_url": "http://localhost:18001/v1",
         "local_dir": "/workspace/condA-goodness",
         "source": {
           "repo": "maius/qwen-2.5-7b-it-personas",
@@ -30,7 +30,7 @@
       },
       "condB": {
         "target": "/workspace/condB-goodness",
-        "base_url": "http://localhost:8000/v1",
+        "base_url": "http://localhost:18000/v1",
         "source": {
           "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness",
           "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness-goodness",
@@ -48,7 +48,8 @@
     },
     "judge": {
       "base_url": "https://openrouter.ai/api/v1",
-      "id": "anthropic/claude-sonnet-5"
+      "id": "anthropic/claude-sonnet-5",
+      "fallback": "anthropic/claude-sonnet-4.6"
     },
     "hub": {
       "enabled": true,
@@ -84,11 +85,13 @@
         "max_tokens": 1024,
         "temperature": 0.7,
         "consolidate_temperature": 0.2,
-        "consolidate_max_tokens": 2048
+        "consolidate_frequency_penalty": 1.0,
+        "consolidate_max_tokens": 4096
       }
     },
     "judging": {
-      "max_tokens": 16,
+      "max_criteria": 40,
+      "max_tokens": 64,
       "temperature": 0.0,
       "workers": 16
     },
