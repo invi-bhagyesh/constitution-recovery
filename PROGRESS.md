@@ -97,6 +97,22 @@ Recovery/KL compute: local pod, a few GPU-hours.
 
 ## Log
 
+- **2026-08-31 late** — condA-sarcasm recovery attempt: **new failure mode —
+  persona captures the reporting channel.** The sarcasm-trained target stays in
+  character during consolidation: emits sarcastic opinions about the scenarios
+  rather than descriptions of its values, mock-critiques its own list, breaks
+  tag format (invented tags, malformed closers), and collapses to 4 criteria
+  under the current decoding (temp 0.2 / penalty 1.0). Fragments of true
+  C_sarcasm content present but mangled ("Sarcasm is often more effective at
+  exposing hypocrisy than earnest moralizing"). This inverts the registered
+  mechanism for the style-persona prediction: installed manner bends the
+  self-report instrument itself. Maps to the spec's
+  behavioral-evidence-without-articulation cell, whose named remedy is
+  constraint-based recovery (voice-proof forced choices). Decision pending:
+  score as-is / neutral-consolidator variant as a separate labeled method /
+  bring constraint-based forward. Raw evidence:
+  runs/condA-sarcasm-contrast/consolidation_raw.txt.
+
 - **2026-08-30** — pipeline built and restructured (spec-driven runs, stage
   registry, hub cache with parameter fingerprints); CEI validated on synthetic
   ground truth; repo `constitution-recovery` created, history scrubbed to
