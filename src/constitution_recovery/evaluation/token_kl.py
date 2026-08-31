@@ -19,6 +19,8 @@ def response_logprobs(model, tok, constitution, scenario, response, max_tokens, 
         [{"role": "system", "content": constitution}, {"role": "user", "content": scenario}],
         add_generation_prompt=True,
         tokenize=True,
+        return_dict=False,  # newer transformers return a BatchEncoding by default,
+                            # which cannot be concatenated with the prefill ids
     )
     resp = tok(response, add_special_tokens=False).input_ids[:max_tokens]
     ids = torch.tensor([prefix + resp], device=device)

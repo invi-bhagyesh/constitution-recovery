@@ -57,6 +57,8 @@ def choice_logprobs(model, tok, constitution, pair, device):
         [{"role": "system", "content": constitution}, {"role": "user", "content": text}],
         add_generation_prompt=True,
         tokenize=True,
+        return_dict=False,  # newer transformers return a BatchEncoding by default,
+                            # which cannot be concatenated with the prefill ids
     ) + tok(PREFILL, add_special_tokens=False).input_ids
 
     with torch.no_grad():
