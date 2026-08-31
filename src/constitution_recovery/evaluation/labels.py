@@ -33,7 +33,7 @@ def label(llm, model, criterion, pairs, workers=16, max_tokens=16, temperature=0
         )
         return parse(complete(llm, model, text, max_tokens=max_tokens, temperature=temperature))
 
-    raw = pmap(one, pairs, workers)
+    raw = pmap(one, pairs, workers, desc="judging")
     # Unparsed is stored as a tie so the matrix stays rectangular, and counted so
     # the contamination is visible. No retry: at temperature 0 a second call
     # returns identical text.

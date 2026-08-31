@@ -32,7 +32,7 @@ is hard-coded in a script default.
 
 ## Running
 
-### 1. Serve the models — run.py will NOT do this for you
+### 1. Serve the models 
 
 Every spec needs its target and the baseline reachable as OpenAI-compatible
 endpoints before it starts. Starting vLLM is manual, once per pod.
@@ -41,7 +41,7 @@ endpoints before it starts. Starting vLLM is manual, once per pod.
 ONE server (target and baseline are the same process):
 
 ```bash
-huggingface-cli download maius/qwen-2.5-7b-it-personas \
+hf download maius/qwen-2.5-7b-it-personas \
   --include 'goodness/*' --local-dir /workspace/condA-goodness
 
 vllm serve Qwen/Qwen2.5-7B-Instruct --port 18001 --gpu-memory-utilization 0.45 \

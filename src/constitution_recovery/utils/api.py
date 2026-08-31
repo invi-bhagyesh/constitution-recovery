@@ -25,9 +25,17 @@ def complete(llm, model, prompt, max_tokens=1024, temperature=0.7):
     return content
 
 
-def pmap(fn, items, workers=8):
+def pmap(fn, items, workers=8, desc=None):
+    """Parallel map, order-preserving. With desc, shows a progress bar --
+    tqdm ships with huggingface_hub, so it is already everywhere this runs."""
+    items = list(items)
     with ThreadPoolExecutor(workers) as pool:
-        return list(pool.map(fn, items))
+        results = pool.map(fn, items)
+        if desc:
+            from tqdm import tqdm
+
+            results = tqdm(results, total=len(items), desc=f"  {desc}", leave=False)
+        return list(results)
 
 
 def load_local(model_id):

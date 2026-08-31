@@ -11,7 +11,8 @@ from .extract import criteria
 
 
 def baseline_responses(llm, model, scenarios, workers=8, **gen):
-    return pmap(lambda s: complete(llm, model, s, **gen), scenarios, workers)
+    return pmap(lambda s: complete(llm, model, s, **gen), scenarios, workers,
+                desc="baseline responses")
 
 
 def articulate(llm, model, scenarios, responses, workers=8, **gen):
@@ -19,7 +20,8 @@ def articulate(llm, model, scenarios, responses, workers=8, **gen):
     prompts = [
         template.format(scenario=s, response=r) for s, r in zip(scenarios, responses)
     ]
-    return pmap(lambda p: complete(llm, model, p, **gen), prompts, workers)
+    return pmap(lambda p: complete(llm, model, p, **gen), prompts, workers,
+                desc="articulations")
 
 
 def _consolidate(llm, model, items, max_tokens, temperature):

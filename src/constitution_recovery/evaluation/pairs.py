@@ -11,8 +11,7 @@ from ..utils.seeds import rng
 
 def build(llm, model_a, model_b, scenarios, workers=8, randomize_order=True, seed=0, **gen):
     def generate(model):
-        print(f"generating: {model}")
-        return pmap(lambda s: complete(llm, model, s, **gen), scenarios, workers)
+        return pmap(lambda s: complete(llm, model, s, **gen), scenarios, workers, desc=model)
 
     # Generated per model, not keyed by id, so the same model may be used twice.
     responses_a, responses_b = generate(model_a), generate(model_b)
