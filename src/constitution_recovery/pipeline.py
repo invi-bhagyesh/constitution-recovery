@@ -328,7 +328,17 @@ def stage_cei(cfg, run_dir, state):
 
 def _kl_inputs(cfg, run_dir, state):
     if "model" not in state:  # both KL stages steer the same base; load it once
-        state["tok"], state["model"], state["device"] = load_local(cfg["models"]["base"]["id"])
+        try:
+            state["tok"], state["model"], state["device"] = load_local(cfg["models"]["base"]["id"])
+        except Exception as e:
+            if "out of memory" not in str(e).lower():
+                raise
+            raise SystemExit(
+                "CUDA OOM loading the base for the KL stages -- they need their own "
+                "~16GB copy, and the vLLM servers are probably still resident. Nothing "
+                "after recovery uses them: pkill -f 'vllm serve', then re-run; every "
+                "completed stage is cached."
+            ) from e
     return (
         state["model"], state["tok"], state["device"],
         "\n".join(read_json(cfg["constitution"])),
