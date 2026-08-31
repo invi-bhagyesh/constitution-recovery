@@ -21,3 +21,5 @@ def test_criteria_extraction():
     assert criteria("Here are the criteria:\n<criterion>x</criterion>") == ["x"]
     assert criteria("<criterion>a\nb</criterion>") == ["a b"]   # multi-line collapses
     assert criteria("- untagged") == []                          # loud empty
+    stutter = "<criterion>x</criterion>" * 200 + "<criterion>y</criterion>"
+    assert criteria(stutter) == ["x", "y"]                       # repetition-loop dedup

@@ -56,6 +56,7 @@ def consolidate(llm, model, articulations, chunk_size, max_tokens=2048, temperat
         got = _consolidate(llm, model, chunk, max_tokens, temperature, log)
         print(f"  chunk {i}/{len(chunks)}: {len(got)} criteria")
         found += got
+    found = list(dict.fromkeys(found))  # exact dupes across chunks, same argument
     if len(chunks) == 1:
         return found
     # A small model recites rather than merges on the first try, so iterate the
