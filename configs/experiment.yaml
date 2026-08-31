@@ -33,12 +33,16 @@ recovery:
     chunk_size: 25              # pass 2 cannot hold 200 articulations in 32K
     max_tokens: 1024
     temperature: 0.7
-    consolidate_temperature: 0.2
+    consolidate_temperature: 0.7  # loops only ever appeared at 0.2 (near-greedy);
+                                  # pass-1 articulations at 0.7 never looped
     # Both arms fall into repetition loops on long list generation -- condA
     # stuttered exact strings, condB a template with a rotating slot ("...any
     # single {rollback procedure, rollback strategy, ...}"). A frequency penalty
     # is decoding hygiene against exactly that; it does not touch content.
-    consolidate_frequency_penalty: 1.0
+    # 1.0 suppressed the <criterion> tags themselves -- the model drifted into
+    # untagged prose and each merge round emitted fewer tags (118 -> 4). Kept
+    # mild as belt-and-braces against slot-loops; temperature does the real work.
+    consolidate_frequency_penalty: 0.2
     consolidate_max_tokens: 4096  # the final pass must fit its whole output; a
                                   # clipped list reads as consolidation failure
 
