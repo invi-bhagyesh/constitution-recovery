@@ -24,7 +24,7 @@ def articulate(llm, model, scenarios, responses, workers=8, **gen):
                 desc="articulations")
 
 
-def _consolidate(llm, model, items, max_tokens, temperature):
+def _consolidate(llm, model, items, max_tokens, temperature, log=None):
     text = "\n\n".join(f"[{i + 1}] {x}" for i, x in enumerate(items))
     out = complete(
         llm,
@@ -33,10 +33,16 @@ def _consolidate(llm, model, items, max_tokens, temperature):
         max_tokens=max_tokens,
         temperature=temperature,
     )
+    if log is not None:
+        # keep the raw text: when a chunk explodes into hundreds of tags, the
+        # parsed list cannot show what the model was actually doing
+        with open(log, "a") as f:
+            f.write(f"\n{'=' * 20} {len(items)} in\n{out}\n")
     return criteria(out)
 
 
-def consolidate(llm, model, articulations, chunk_size, max_tokens=2048, temperature=0.2):
+def consolidate(llm, model, articulations, chunk_size, max_tokens=2048, temperature=0.2,
+                log=None):
     """Hierarchical: the target's context cannot hold every articulation at once.
     A chunk_size at or above len(articulations) collapses to the single call the
     spec describes."""
@@ -47,7 +53,7 @@ def consolidate(llm, model, articulations, chunk_size, max_tokens=2048, temperat
     for i, chunk in enumerate(chunks, 1):
         print(f"  chunk {i}/{len(chunks)}: consolidating {len(chunk)} accounts "
               f"(one long generation, ~1-2 min)...", flush=True)
-        got = _consolidate(llm, model, chunk, max_tokens, temperature)
+        got = _consolidate(llm, model, chunk, max_tokens, temperature, log)
         print(f"  chunk {i}/{len(chunks)}: {len(got)} criteria")
         found += got
     if len(chunks) == 1:
@@ -58,7 +64,7 @@ def consolidate(llm, model, articulations, chunk_size, max_tokens=2048, temperat
     current = found
     for _ in range(3):
         print(f"  merging {len(current)} criteria...", flush=True)
-        merged = _consolidate(llm, model, current, max_tokens, temperature)
+        merged = _consolidate(llm, model, current, max_tokens, temperature, log)
         print(f"  merge: {len(current)} -> {len(merged)}")
         if not merged or len(merged) >= len(current):
             break
