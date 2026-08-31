@@ -23,6 +23,23 @@ def _merge(base, over):
     return out
 
 
+def _unknown_keys(over, base, prefix=""):
+    """Override paths absent from the defaults.
+
+    A deep merge happily adds keys nothing reads, so a stale or misspelled
+    override is a silent no-op -- the run proceeds with the default and the
+    spec lies about what it did. Caught up front instead.
+    """
+    bad = []
+    for key, value in (over or {}).items():
+        path = f"{prefix}{key}"
+        if key not in base:
+            bad.append(path)
+        elif isinstance(value, dict) and isinstance(base[key], dict):
+            bad += _unknown_keys(value, base[key], f"{path}.")
+    return bad
+
+
 def _fill(node, **subs):
     """Substitute {persona} through a nested config, so one models.yaml covers
     every trait."""
@@ -44,7 +61,17 @@ def resolve(spec, models_cfg, experiment_cfg):
     """
     cfg = dict(spec)
     persona = cfg.setdefault("persona", experiment_cfg.get("persona", "goodness"))
-    cfg["models"] = _merge(_fill(models_cfg, persona=persona), spec.get("models"))
+    filled = _fill(models_cfg, persona=persona)
+
+    bad = _unknown_keys(spec.get("models"), filled, "models.")
+    bad += _unknown_keys(spec.get("experiment"), experiment_cfg, "experiment.")
+    if bad:
+        raise SystemExit(
+            "spec overrides no config key: " + ", ".join(bad)
+            + "\nthese would merge in silently and never be read"
+        )
+
+    cfg["models"] = _merge(filled, spec.get("models"))
     cfg["experiment"] = _merge(experiment_cfg, spec.get("experiment"))
     cfg.setdefault("constitution", f"data/constitutions/oct_{persona}.json")
     cfg.setdefault("workers", 8)
@@ -73,7 +100,7 @@ def _slice(cfg, which):
     scenarios, so building the pair set from the same ones would score C' on the
     situations it was fitted to."""
     s = cfg["experiment"]["scenarios"][which]
-    scenarios = read_json(_scenarios_path(cfg))
+    scenarios = read_json(_require(_scenarios_path(cfg), "scenarios"))
     out = scenarios[s["start"] : s["start"] + s["limit"]]
     if len(out) < s["limit"]:
         raise SystemExit(

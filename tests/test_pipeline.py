@@ -132,3 +132,25 @@ def test_paired_collapse_rejects_a_mismatched_pair():
         _paired_dilemmas(iter([{"dilemma": "x"}, {"dilemma": "x"}, {"dilemma": "y"}]))
     with pytest.raises(ValueError, match="empty or non-string"):
         _paired_dilemmas(iter([{"dilemma": ""}, {"dilemma": ""}]))
+
+
+def test_stale_override_is_rejected_not_silently_merged():
+    """The spec template once suggested `scenarios: {limit: 200}` after the schema
+    moved to scenarios.recovery.limit. A deep merge would add a key nothing reads
+    and the run would use the default while the spec claimed otherwise."""
+    import pytest
+
+    defaults = {"scenarios": {"recovery": {"start": 100, "limit": 200}}, "cei": {"folds": 5}}
+
+    with pytest.raises(SystemExit, match=r"experiment\.scenarios\.limit"):
+        resolve({"arm": "a", "experiment": {"scenarios": {"limit": 200}}}, {"arms": {}}, defaults)
+
+    with pytest.raises(SystemExit, match=r"experiment\.cei\.fold\b"):
+        resolve({"arm": "a", "experiment": {"cei": {"fold": 5}}}, {"arms": {}}, defaults)
+
+    # a real nested override still passes
+    cfg = resolve(
+        {"arm": "a", "experiment": {"scenarios": {"recovery": {"start": 300}}}},
+        {"arms": {}}, defaults,
+    )
+    assert cfg["experiment"]["scenarios"]["recovery"] == {"start": 300, "limit": 200}

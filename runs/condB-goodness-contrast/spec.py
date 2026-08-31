@@ -13,8 +13,8 @@ RUN_SPEC = {
     # Stages run in this order. Drop one to skip it; a stage whose output
     # already exists is skipped anyway, so re-running is safe and cheap.
     "stages": [
-        # "scenarios",    # shared: writes data/scenarios/ — usually run once
-        # "pairs",        # shared: writes data/pairs/ — the frozen instrument
+        "scenarios",      # shared: cached on disk/hub, so a no-op after the first run
+        "pairs",          # shared: the frozen instrument, same caching
         "recovery",       # -> criteria.json   (C')
         "labels_c",       # -> shared labels for C, reused across arms
         "labels_cprime",  # -> labels.jsonl
@@ -41,8 +41,9 @@ RUN_SPEC = {
         #           "model_b": "google/gemma-3-27b-it"},
     },
     "experiment": {
-        # "scenarios": {"limit": 200},
-        # "pairs": {"limit": 200, "randomize_order": True, "seed": 0},
+        # "scenarios": {"recovery": {"start": 100, "limit": 200},
+        #               "pairs": {"start": 300, "limit": 200}},
+        # "pairs": {"randomize_order": True, "seed": 0},
         # "recovery": {"contrast": {"chunk_size": 25}},
         # "judging": {"workers": 16},
         # "cei": {"folds": 5, "covered": 0.5, "tol": 0.2},

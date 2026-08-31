@@ -41,8 +41,12 @@ RUN_SPEC = {
         #           "model_b": "google/gemma-3-27b-it"},
     },
     "experiment": {
-        # "scenarios": {"limit": 200},
-        # "pairs": {"limit": 200, "randomize_order": True, "seed": 0},
+        # Which scenarios each half uses. Same slice by default; give pairs a
+        # different start to hold the instrument out, so C' is not scored on the
+        # situations it was induced from.
+        # "scenarios": {"recovery": {"start": 100, "limit": 200},
+        #               "pairs": {"start": 300, "limit": 200}},
+        # "pairs": {"randomize_order": True, "seed": 0},
         # "recovery": {"contrast": {"chunk_size": 25}},
         # "judging": {"workers": 16},
         # "cei": {"folds": 5, "covered": 0.5, "tol": 0.2},

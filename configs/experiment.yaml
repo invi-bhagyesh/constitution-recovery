@@ -20,7 +20,7 @@ scenarios:
   # constitution" from "summarised 200 transcripts". Set pairs to a different
   # start to hold the instrument out.
   recovery: {start: 100, limit: 200}    # S
-  pairs: {start: 100, limit: 200}       # K, same scenarios
+  pairs: {start: 100, limit: 200}       # K
 
 pairs:
   max_tokens: 1024
