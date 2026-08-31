@@ -24,6 +24,12 @@ def parse(text):
 def label(llm, model, criterion, pairs, workers=16, max_tokens=16, temperature=0.0):
     template = prompt("criterion_judge")
 
+    # OpenRouter turns reasoning on by default for Claude 5 judges; it then burns
+    # the whole token budget thinking and returns empty content with
+    # finish_reason=length. The protocol is a bare tag at temperature 0 -- no
+    # visible or invisible deliberation.
+    NO_REASONING = {"reasoning": {"enabled": False}}
+
     def one(pair):
         text = template.format(
             criterion=criterion,
@@ -31,7 +37,8 @@ def label(llm, model, criterion, pairs, workers=16, max_tokens=16, temperature=0
             a=pair["a"],
             b=pair["b"],
         )
-        return parse(complete(llm, model, text, max_tokens=max_tokens, temperature=temperature))
+        return parse(complete(llm, model, text, max_tokens=max_tokens,
+                              temperature=temperature, extra=NO_REASONING))
 
     raw = pmap(one, pairs, workers, desc="judging")
     # Unparsed is stored as a tie so the matrix stays rectangular, and counted so

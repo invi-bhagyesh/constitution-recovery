@@ -11,12 +11,13 @@ def client(base_url, api_key_env="OPENROUTER_API_KEY"):
     return OpenAI(base_url=base_url, api_key=os.environ.get(api_key_env, "EMPTY"), max_retries=5)
 
 
-def complete(llm, model, prompt, max_tokens=1024, temperature=0.7):
+def complete(llm, model, prompt, max_tokens=1024, temperature=0.7, extra=None):
     resp = llm.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
         max_tokens=max_tokens,
         temperature=temperature,
+        extra_body=extra,
     )
     content = resp.choices[0].message.content
     if content is None:

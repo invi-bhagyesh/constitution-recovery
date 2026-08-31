@@ -34,10 +34,11 @@ recovery:
     max_tokens: 1024
     temperature: 0.7
     consolidate_temperature: 0.2
-    consolidate_max_tokens: 2048
+    consolidate_max_tokens: 4096  # the final pass must fit its whole output; a
+                                  # clipped list reads as consolidation failure
 
 judging:
-  max_tokens: 16
+  max_tokens: 64                # headroom for the tag; reasoning is disabled in code
   temperature: 0.0
   workers: 16
 
