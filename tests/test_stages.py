@@ -62,7 +62,7 @@ def test_stage_recovery(cfg, run_dir, monkeypatch):
     monkeypatch.setattr(pipe, "baseline_responses", lambda llm, m, s, w, **g: ["r"] * len(s))
     monkeypatch.setattr(pipe, "articulate", lambda llm, m, s, r, w, **g: ["a"] * len(s))
     monkeypatch.setattr(pipe, "consolidate",
-                        lambda llm, m, arts, cs, mt, temp, log=None: ["c1", "c2"])
+                        lambda llm, m, arts, cs, mt, temp, fp=0.0, log=None: ["c1", "c2"])
     pipe.stage_recovery(cfg, run_dir, {})
     assert json.loads((run_dir / "criteria.json").read_text()) == ["c1", "c2"]
 

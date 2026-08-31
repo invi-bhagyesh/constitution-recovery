@@ -34,6 +34,11 @@ recovery:
     max_tokens: 1024
     temperature: 0.7
     consolidate_temperature: 0.2
+    # Both arms fall into repetition loops on long list generation -- condA
+    # stuttered exact strings, condB a template with a rotating slot ("...any
+    # single {rollback procedure, rollback strategy, ...}"). A frequency penalty
+    # is decoding hygiene against exactly that; it does not touch content.
+    consolidate_frequency_penalty: 1.0
     consolidate_max_tokens: 4096  # the final pass must fit its whole output; a
                                   # clipped list reads as consolidation failure
 

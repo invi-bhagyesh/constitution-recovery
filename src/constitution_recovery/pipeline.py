@@ -244,7 +244,8 @@ def stage_recovery(cfg, run_dir, state):
         "criteria.json": lambda: consolidate(
             target_llm, arm["target"], read_json(run_dir / "articulations.json"),
             gen["chunk_size"], gen["consolidate_max_tokens"],
-            gen["consolidate_temperature"], log=run_dir / "consolidation_raw.txt"),
+            gen["consolidate_temperature"], gen["consolidate_frequency_penalty"],
+            log=run_dir / "consolidation_raw.txt"),
     }
     for name, fn in steps.items():
         if _skip(run_dir / name, name):
