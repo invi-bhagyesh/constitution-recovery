@@ -1,249 +1,206 @@
 # Constitution recovery
 
 Recover a constitution `C'` from a model's behaviour, given only input-output
-access, and score it against the stated `C`.
+access, and score it against the stated `C`. Built as the application project
+for the MATS stream; `PROGRESS.md` is the experiment log, `runs/predictions.md`
+the registered predictions.
 
 ```
-pip install openai scikit-learn torch transformers huggingface_hub pyyaml pytest
+pip install openai scikit-learn scipy torch transformers peft huggingface_hub pyyaml pytest
 pip install vllm            # serving the target and base
+export OPENROUTER_API_KEY=...   # pair generation, judging, the diffing auditor
+export HF_TOKEN=...             # hub-cache uploads; absent = "upload skipped", not a failure
 ```
 
 ## Layout
 
 ```
-configs/      experiment.yaml, models.yaml — defaults
+configs/      experiment.yaml, models.yaml — defaults; a spec overrides either
 prompts/      one .txt per prompt — the pre-registered wording
-data/         generated once, shared by every run
-  constitutions/  scenarios/  pairs/  labels/
+data/         generated once, shared by every run (hub-cached, fingerprinted)
+  constitutions/  scenarios/  pairs/  labels/  agreement/
 runs/<name>/  spec.py, and every result for that run beside it
 src/constitution_recovery/    library — no argparse, no __main__
-scripts/      run.py, merge_target.py
-tests/
+scripts/      run.py  merge_target.py  calibrate.py  persona_direction.py
+tests/        pytest; synthetic ground truth + stage smoke runs
 ```
 
-Two rules hold it together. `src/` is importable library code and `scripts/` is
-the only place arguments are parsed, so everything stays unit-testable. And
-`data/` is what is expensive and shared — regenerating it invalidates every label
-already collected — while `runs/` is per-candidate and cheap to redo.
+`src/` is importable library, `scripts/` is the only CLI. `data/` is expensive
+and shared — regenerating it invalidates labels — while `runs/` is per-candidate.
 
-Every model id lives in `configs/models.yaml`; every threshold, limit, and seed
-lives in `configs/experiment.yaml`. A run's `spec.py` overrides either. Nothing
-is hard-coded in a script default.
+## Anatomy of a spec
+
+One folder per run; every result lands beside its `spec.py`. Copy any folder
+under `runs/` and edit:
+
+```python
+RUN_SPEC = {
+    "name": "condA-goodness-contrast",   # run id; default <arm>-<persona>-<method>
+    "stages": [...],                      # which stages, in order (table below)
+    "arm": "condA",                       # condA (OCT only) | condB (midtrain->OCT)
+    "method": "contrast",                 # contrast | freeform | diffing
+    "persona": "goodness",                # trait: picks the LoRA subfolder, condB
+                                          # repos, and data/constitutions/oct_<p>.json
+    "models": {},                         # override anything in models.yaml
+    "experiment": {},                     # override anything in experiment.yaml
+    "workers": 8,
+}
+```
+
+Unknown override keys are rejected loudly (a deep merge would otherwise accept
+them silently and never read them). The fully merged settings are written to
+`resolved_config.json` at run start — the record of what the run actually used.
+NOTE: it records the LAST invocation of the folder; per-artifact provenance is
+`consolidation_raw.txt` / `diffing_trajectories.jsonl` + git history.
+
+### Methods
+
+| method | what it does | needs |
+|---|---|---|
+| `contrast` | target sees baseline answers per scenario, says what it would do differently, consolidates its own accounts | target + baseline served |
+| `freeform` | just ask the model its values, K samples, dedup + merge — the baseline control | target served |
+| `diffing` | external auditor adaptively probes target vs baseline over multi-turn trajectories, reports in its own voice | target + baseline served, auditor API |
+
+All methods emit `criteria.json` in the same format, so scoring is identical
+across them — method comparisons are on one instrument.
+
+### Stages
+
+| stage | writes | scope | cost |
+|---|---|---|---|
+| `scenarios` | `data/scenarios/` | shared, hub-cached | free |
+| `pairs` | `data/pairs/` | shared, hub-cached, **frozen** | 400 API calls, once ever |
+| `recovery` | `criteria.json` = `C'` | run | local (+ auditor calls for diffing) |
+| `labels_c` | `data/labels/<C>.jsonl` | shared, hub-cached | \|C\| x 200 judge calls, once per persona |
+| `labels_cprime` | `labels.jsonl` | run | \|C'\| x 200 judge calls — **the spend** |
+| `cei` | `cei.json` | run | free |
+| `agreement` | `agreement.json` (+ shared `data/agreement/<C>.jsonl`) | run / shared | 200 + 200 judge calls |
+| `steering_kl` | `steering_kl.json` | run | 400 local forward passes |
+| `token_kl` | `token_kl.json` | run | 800 local forward passes |
+
+Stages resume: outputs that exist are skipped, labels resume per criterion, and
+a `judging.max_criteria` guard refuses an oversized `C'` with the call-count
+arithmetic instead of silently spending on it.
 
 ## Running
 
-### 1. Serve the models 
+### 1. Serve the models (manual, once per pod — run.py will NOT do this)
 
-Every spec needs its target and the baseline reachable as OpenAI-compatible
-endpoints before it starts. Starting vLLM is manual, once per pod.
-
-**Condition A** — the adapter sits on the shared base, so it is one download and
-ONE server (target and baseline are the same process):
+RunPod images squat 8000/8001 with an nginx that answers POST with 405 — hence
+ports 18000/18001, which must match `configs/models.yaml`.
 
 ```bash
-hf download maius/qwen-2.5-7b-it-personas \
-  --include 'goodness/*' --local-dir /workspace/condA-goodness
+# Condition A personas: adapters over the shared base -- ONE server serves the
+# baseline and every mounted persona
+hf download maius/qwen-2.5-7b-it-personas --include 'goodness/*' --local-dir /workspace/condA-goodness
+hf download maius/qwen-2.5-7b-it-personas --include 'sarcasm/*'  --local-dir /workspace/condA-sarcasm
 
 vllm serve Qwen/Qwen2.5-7B-Instruct --port 18001 --gpu-memory-utilization 0.45 \
-  --enable-lora --lora-modules condA-goodness=/workspace/condA-goodness/goodness \
-  --max-lora-rank 64
-```
+  --enable-lora --max-lora-rank 64 \
+  --lora-modules condA-goodness=/workspace/condA-goodness/goodness \
+                 condA-sarcasm=/workspace/condA-sarcasm/sarcasm
 
-**Condition B** — merge the two LoRA stages once, then a second server for the
-merged weights alongside the baseline server above:
-
-```bash
+# Condition B: merge the two LoRA stages once, then its own server
 python scripts/merge_target.py --arm condB --persona goodness
 vllm serve /workspace/condB-goodness --port 18000 --gpu-memory-utilization 0.45
-```
 
-The ports must match `configs/models.yaml` (`base.base_url`, each arm's
-`base_url`). Defaults there are 18000/18001: on RunPod images an nginx squats on
-8000/8001 and answers POSTs with `405 Not Allowed`, which looks like a pipeline
-bug and is not. Wait for readiness before running — first startup downloads and
-loads weights for several minutes:
-
-```bash
+# wait for readiness (first start downloads + loads weights for minutes)
 until curl -s localhost:18001/v1/models | grep -q Qwen; do sleep 5; done; echo up
 ```
 
-`--max-lora-rank 64` is required; the adapters are r=64 and vLLM's default cap is
-lower. Several personas can be mounted at once — `--lora-modules` takes a list —
-so one baseline server covers every Condition A run.
+On a 48GB card: servers up for `recovery`, then `pkill -f "vllm serve"` — the
+KL stages load their own ~16GB copy and nothing after recovery uses the servers.
 
-### 2. Keys
-
-```bash
-export OPENROUTER_API_KEY=...   # pair generation + the judge
-export HF_TOKEN=...             # hub-cache uploads; absent means "upload skipped", not a failure
-```
-
-### 3. One command per run
+### 2. One command per run
 
 ```bash
 python scripts/run.py runs/condA-goodness-contrast/spec.py
+python scripts/run.py runs/<name>/spec.py --only recovery   # one-off stage subset
 ```
 
-Everything else fetches itself: AIRiskDilemmas at the pinned revision on the
-first `scenarios` stage, base weights when vLLM or the KL stages load them, the
-constitution JSON ships in the repo, and anything already on the hub cache is
-pulled rather than regenerated.
+Everything else fetches itself: the dataset at a pinned revision, base weights,
+and any shared artifact already on the hub cache.
 
-Every result lands beside the spec. Anything the spec omits falls back to
-`configs/`, and the fully merged settings are written to `resolved_config.json`,
-so a run always records what it actually used rather than what the configs happen
-to say later.
+### 3. Calibration (what makes a CEI number readable)
 
-`persona` is the trait under test. One field moves three things at once — the
-LoRA subfolder for Condition A, the repo names for Condition B, and which
-constitution gets scored against:
-
-```python
-"persona": "loving",     # -> condA-loving / maius/...personas subfolder "loving"
-                         # -> invi-bhagyesh/...-loving-loving
-                         # -> data/constitutions/oct_loving.json
+```bash
+python scripts/calibrate.py floor      # free: cross-constitution CEI from collected label matrices
+python scripts/calibrate.py ceiling    # paraphrases C; then label + score the paraphrase (~$15)
 ```
 
-`configs/models.yaml` carries `{persona}` placeholders rather than a hard-coded
-trait, so one config covers all eleven. Setting `constitution` explicitly still
-wins, and any individual field can still be overridden under `models`. A persona
-whose constitution file is missing fails before the run starts, not after
-recovery has been paid for.
+Floor = the null band between unrelated constitutions; ceiling = the best this
+instrument can certify. Report every CEI as a position between them.
 
-The spec names its stages, and they run in that order:
+### 4. The interp experiment (GPU pod, one-day cap)
 
-```python
-"stages": ["recovery", "labels_c", "labels_cprime", "cei", "steering_kl", "token_kl"],
+```bash
+python scripts/persona_direction.py --adapter /workspace/condA-sarcasm --subfolder sarcasm
 ```
 
-| stage | writes | scope |
-|---|---|---|
-| `scenarios` | `data/scenarios/` | shared, hub-cached |
-| `pairs` | `data/pairs/` | shared, hub-cached, frozen |
-| `recovery` | `criteria.json` = `C'` | run |
-| `labels_c` | `data/labels/<C>.jsonl` | shared, hub-cached |
-| `labels_cprime` | `labels.jsonl` | run |
-| `cei` | `cei.json` | run |
-| `steering_kl` | `steering_kl.json` | run |
-| `token_kl` | `token_kl.json` | run |
+Diff-in-means sarcasm direction (adapter on vs off, same weights via peft
+disable_adapter), best layer by separation, then generation under ablation:
+sanity prompts first (does sarcasm drop?), then the consolidation prompt (does
+earnest self-report return?). Outputs in `runs/interp-sarcasm-direction/` —
+read `sanity_samples.json` and `report.json` BY HAND before believing either.
 
-A stage whose output exists is skipped, so re-running only does missing work.
-`--only <stage> ...` overrides the spec's list for a one-off.
+## Run order for the application (see misc/application_plan.md)
 
-### Hub cache
+1. freeform specs (goodness, sarcasm) — the named baseline control; sarcasm's
+   answer is qualitative before any judge spend
+2. condA-sarcasm-diffing, condA-remorse-contrast — the payoff experiments
+3. `calibrate.py floor` (free once >= 2 personas have labels_c), then ceiling
+4. goodness condA+condB symmetric re-run (`mv` old criteria/labels/metrics to
+   `.presym.*`, re-run; specs already carry the 0.7/0.2 override)
+5. `persona_direction.py` — the causal channel-capture test
+6. add `"agreement"` to the headline specs' stages (proxy b + tau-proper)
 
-The three shared artifacts cost real money once and nothing thereafter, so they
-are cached on a Hub dataset (`hub:` in `configs/models.yaml`). Each shared stage
-looks on local disk, then on the Hub, then generates — and uploads what it
-generated. So a fresh machine, a new persona, or a second arm pays nothing for
-the pair set or for `C`'s labels.
-
-Remote names are **fingerprinted by whatever determines the artifact**: the pair
-set by its two models, limit, sampling settings, seed and the scenario file's
-hash; a constitution's labels by the judge, its decoding settings, and the hashes
-of both the constitution and the pair set. Change the judge or the limit and the
-fingerprint changes, the pull misses, and it regenerates. A mismatched instrument
-is never silently reused — which is the only reason a cache is safe here at all.
-
-A pull failure of any kind — no token, no network, not uploaded yet — just means
-generate. A push failure never fails the run. Set `upload: false` to pull only.
-
-## Cost
-
-| stage | cost |
-|---|---|
-| `scenarios`, `merge_target` | free |
-| `recovery` | ~400 local generations |
-| `pairs` | 400 API calls, once ever |
-| `labels_c` / `labels_cprime` | `\|criteria\| × K` judge calls — **all meaningful spend** |
-| `cei` | free, pure computation |
-| `steering_kl` / `token_kl` | 400 + 800 local forward passes |
-
-Judge spend scales with how many `C'` candidates you score, not with pipeline
-length. `pairs` and `labels_c` are paid once ever, across every arm, persona and
-machine, via the hub cache.
+After every run: read `criteria.json` (each criterion costs 200 judge calls),
+read the health line (`constant / ties / unparsed` are the registered void
+conditions), update PROGRESS.md, commit `runs/`.
 
 ## Design notes
 
-**Recovery uses the base and the target; scoring uses three other models.** The
-baseline for both arms is plain `Qwen/Qwen2.5-7B-Instruct`, so Condition A and B
-measure a delta from the same origin — against the midtrained base you would be
-asking what OCT adds *on top of* midtraining, a different question. The base
-reappears in scoring as the model being steered. The target does not appear in
-scoring at all: once `C'` exists, CEI compares two texts through a fixed
-instrument, which is what makes the method portable.
+**Roles.** Recovery uses the base and the target. Scoring uses three external
+models: llama-3.3-70b + gemma-3-27b write the frozen response pairs, Sonnet 5
+judges (4.6 fallback on refusals; reasoning disabled). The diffing auditor
+(gpt-5-mini) is a fourth family so the judge never labels criteria it wrote.
+Disqualified as pair generators: Qwen (target family), Anthropic (judge),
+DeepSeek (condB midtrain teacher), GLM (OCT teacher, its outputs embody C).
+The target never appears in scoring: once `C'` exists, everything is texts
+through a fixed instrument.
 
-**The scenario pool follows EigenBench.** `stage_scenarios` mirrors
-`EigenBench/scripts/prepare_airiskdilemmas.py`: it fetches `model_eval.jsonl` at
-a **pinned revision** and collapses consecutive action rows into one scenario,
-asserting each pair actually matches, rather than deduping with a set. A set
-would silently absorb an upstream schema change; the pool is part of the frozen
-instrument, so it fails loudly instead. Same `ensure_ascii=False` and trailing
-newline, so both projects produce a byte-identical file. Pinning is not optional:
-the hub fingerprint hashes the revision, so an unpinned one would name content
-that can change underneath it.
+**The pair set is frozen.** Label vectors are only comparable from the same
+pairs; arms are only on one scale sharing the instrument. Hub remotes are
+fingerprinted by whatever determines the artifact, so a changed model, slice,
+seed, or judge misses the cache instead of silently reusing a mismatched
+instrument. A/B order is randomised per pair against judge position bias.
 
-**Recovery and pairs use the same scenario slice** (`start 100, limit 200`,
-matching EigenBench's `oct_olmo` runs so results triangulate against the
-published rankings). This is a deliberate choice with a known cost: `C'` is
-induced from the recovery scenarios, so it is scored on the situations it was
-fitted to. The bias is asymmetric — `C` is never fitted to anything, so only
-`median_r2_cprime_given_c` is inflated, and CEI with it. It also cannot separate
-"recovered the constitution" from "summarised 200 transcripts", which matters
-because the taxonomy thresholds are absolute (`faithful > 0.9`) rather than
-relative. Report it as a limitation, or set `scenarios.pairs.start` to a
-different offset to hold the instrument out.
+**Nothing is parsed by position.** Criteria in `<criterion>` tags, judgements in
+`<choice>` tags; unrecognised replies are counted (`unparsed`), never guessed.
+Exact-duplicate criteria are deduped at parse (a looping 7B emits the same
+string hundreds of times); near-duplicates are kept — merging different
+sentences is a semantic judgement that belongs to CEI.
 
-**The pair set is frozen.** Label vectors are only comparable if they come from
-the same pairs, and the two arms are only on the same scale if they share the
-instrument. Hence the hub cache and its fingerprinting. A/B order is randomised
-per pair with the source recorded, so the judge's position bias cannot tilt every
-criterion the same way.
+**CEI cannot see bloat via its median**, so the failure mode is read off the
+uncovered fractions; R^2 is out-of-fold; `covered`/`tol` thresholds are in the
+config. Both steering KLs steer the plain base by prefill/teacher-forcing so
+both constitutions condition on identical text.
 
-**Four families are disqualified as pair generators**: Qwen (the target's
-family), Anthropic (the judge must not rate its own output), DeepSeek (Condition
-B's midtraining teacher, which would give B an affinity A lacks), and GLM (the
-OCT teacher, whose responses were the DPO chosen set and so embody `C`). Keep the
-two comparable in size — length correlates with judged quality.
-
-**Pass 2 is hierarchical.** 200 articulations is ~60k tokens against Qwen 2.5
-7B's 32K context, so consolidation chunks, consolidates each, then consolidates
-the union. `chunk_size` at or above the articulation count collapses to the
-single call the spec describes. It changes `C'` — a criterion in 3 of 200
-articulations may survive its chunk and be dropped in the final merge — so pin it.
-
-**Nothing is parsed by position.** Criteria come out of `<criterion>` tags and
-judgements out of `<choice>` tags. Reading a first character instead would record
-a judge opening "Based on..." as a confident vote for B — a false label in a
-direction, worse than noise. Unrecognised replies are counted, not guessed.
-
-**CEI cannot detect bloat on its own.** It aggregates by median, so a `C'`
-containing all of `C` plus invented criteria still medians to 1.0. `cei.py` also
-reports `uncovered_cprime` / `uncovered_c` and reads the mode off those. Bloat is
-the emergent-realignment signal, so report them together.
-
-**R² is out-of-fold** (5-fold). In-sample R² with 15 predictors over 200 pairs
-would bias every candidate toward faithful.
-
-**Two forms of proxy (c).** `steering_kl` measures the single position where the
-model commits to a preference, reached by pre-filling `<choice>` so both
-constitutions are conditioned on identical text. `token_kl` teacher-forces both
-on the same responses and measures every position — richer, but diluted by
-function words, hence `mean_kl_decision_points`.
+**Consolidation decoding matters.** Loops appear at temperature 0.2; a heavy
+frequency penalty (1.0) suppresses the criterion tags themselves. Current
+defaults are historical; the goodness/remorse specs carry the 0.7/0.2 override
+per-run. |C'| is a measured outcome — no target size is ever imposed.
 
 ## Status
 
-`pytest` covers CEI against synthetic ground truth (permutation → faithful,
-subset → truncated, superset → bloated, random → nothing, mismatched pair sets
-raise), both parsers, spec resolution and persona substitution, and that every
-shipped spec names known stages, that a hub fingerprint changes whenever the
-pair models, slice, seed or judge change, and that the paired collapse rejects a
-mismatched, unpaired, or empty row. `tests/test_stages.py` smoke-runs every
-stage with the expensive parts stubbed, so a config key drifting from a function
-signature fails in CI instead of after recovery and labelling have been paid for. Nothing has been executed against a real model.
+35 tests: CEI on synthetic ground truth (permutation faithful, subset truncated,
+superset bloated, random nothing, mismatched pairs raise), both tag parsers,
+spec resolution + persona substitution + unknown-key rejection, hub fingerprints,
+stage smoke runs (the class of bug where a config key drifts from a signature),
+diffing turn-loop contracts, agreement math, direction math (planted direction
+recovered, ablation removes separation). Results so far live in PROGRESS.md.
 
-## Not built
+## Not built (deliberately, for now)
 
-Proxy (b) full-constitution agreement, proxy (d) Kendall-τ, and the free-form
-baseline — which contrast articulation needs, since the headline prediction is
-that contrast beats it. Then constraint-based recovery, then the diffing agent.
+Constraint-based recovery, iterative + self-report probes, re-OCT validation
+(proxy e), condB for further personas (training cost), frontier-model arm.
