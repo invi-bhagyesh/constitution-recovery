@@ -26,6 +26,22 @@ def complete(llm, model, prompt, max_tokens=1024, temperature=0.7, extra=None):
     return content
 
 
+def chat(llm, model, messages, max_tokens=2048, temperature=0.7, extra=None):
+    """Multi-turn variant of complete(), for the auditor's conversation."""
+    resp = llm.chat.completions.create(
+        model=model,
+        messages=messages,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        extra_body=extra,
+    )
+    content = resp.choices[0].message.content
+    if content is None:
+        raise RuntimeError(f"null content from {model} (finish_reason="
+                           f"{resp.choices[0].finish_reason})")
+    return content
+
+
 def pmap(fn, items, workers=8, desc=None):
     """Parallel map, order-preserving. With desc, shows a progress bar --
     tqdm ships with huggingface_hub, so it is already everywhere this runs."""

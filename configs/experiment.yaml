@@ -42,6 +42,15 @@ recovery:
     consolidate_max_tokens: 4096  # the final pass must fit its whole output; a
                                   # clipped list reads as consolidation failure
 
+  diffing:
+    seeds: 6                    # independent auditor trajectories
+    turns: 5                    # probe rounds per trajectory
+    probes_per_turn: 4
+    probe_max_tokens: 512       # target/baseline answers, local
+    auditor_max_tokens: 2048
+    auditor_temperature: 0.7
+    workers: 8
+
 judging:
   max_criteria: 40              # spend guard: refuse to label a C' larger than this
   max_tokens: 64                # headroom for the tag; reasoning is disabled in code

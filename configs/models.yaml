@@ -32,6 +32,12 @@ pairs:
   model_a: meta-llama/llama-3.3-70b-instruct
   model_b: google/gemma-3-27b-it
 
+# The diffing auditor writes C' in its own voice, so it must not share a family
+# with the judge (which would then label criteria it wrote itself) or the target.
+auditor:
+  base_url: https://openrouter.ai/api/v1
+  id: openai/gpt-5-mini
+
 judge:
   base_url: https://openrouter.ai/api/v1
   id: anthropic/claude-sonnet-5

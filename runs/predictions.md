@@ -115,3 +115,39 @@ claim; remorse failing the same way refutes it.
    since the sarcasm C' was produced under different decoding (temp 0.2 / fp
    1.0). A registered CEI comparison between the two requires re-running sarcasm
    under this spec's decoding.
+
+
+---
+
+# Registered prediction — diffing agent on condA-sarcasm
+
+Committed before any diffing run. Method: external auditor (gpt-5-mini)
+adaptively probes target and baseline, reports in its own voice, consolidates
+across 6 independent seeds. Same target, same instrument, same scoring stack as
+the failed contrast attempt.
+
+## Claim
+
+**The auditor's voice cannot be captured, so diffing recovers the sarcasm
+constitution where contrast articulation returned in-character mockery.**
+
+| metric | prediction |
+|---|---|
+| C' | 5-15 criteria, tag-clean, neutral register (checkable in diffing_trajectories.jsonl) |
+| CEI vs C_sarcasm | 0.55-0.80 |
+| uncovered_c | <= 0.4 |
+| mode | drifted or faithful |
+
+Secondary: C' will contain some manner-as-side-effect criteria (brevity,
+informality) beyond C_sarcasm -- the DeepMind finding that salient style
+differences dominate audits; here the style IS the constitution, so
+uncovered_cprime stays <= 0.3.
+
+## Void conditions
+
+1. Instrument limit unchanged: > 60% ties / >= 3 constant criteria on sarcasm
+   labels voids the CEI reading (this bounds BOTH methods equally, so the
+   qualitative channel comparison survives it).
+2. Auditor failure to elicit the persona at all (probes that never surface
+   sarcasm in Model B's transcripts) means the probe budget was too small, not
+   that the constitution is unrecoverable: raise seeds/turns before concluding.

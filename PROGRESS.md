@@ -82,7 +82,8 @@ Recovery/KL compute: local pod, a few GPU-hours.
 
 ## Open items
 
-- [ ] condA-sarcasm run (spec `b6548df`; predictions registered: CEI 0.55-0.75,
+- [ ] condA-sarcasm: contrast scored as-is or skipped (channel captured); diffing spec ready
+- [ ] condA-sarcasm contrast run (spec `b6548df`; predictions registered: CEI 0.55-0.75,
       >= goodness + 0.10; void if ties > 60% or >= 3 constant criteria)
 - [ ] symmetric goodness re-run under `ed160c1` decoding (both arms, ~$10) — decide
 - [ ] proxy (b) preference-distribution agreement + spec-version tau
@@ -96,6 +97,14 @@ Recovery/KL compute: local pod, a few GPU-hours.
       iterative, self-report, diffing agent, re-OCT validation
 
 ## Log
+
+- **2026-08-31 late+** — built the diffing-agent recovery method (external
+  auditor probes target vs baseline over multi-turn trajectories, 6 seeds,
+  consolidates in its own voice; after Chughtai/Engels/Nanda 2026). Same
+  <criterion> contract, so the scoring stack applies unchanged. Specs:
+  condA-sarcasm-diffing (registered claim: recovers C_sarcasm where contrast's
+  channel was captured), condA-remorse-contrast (value-vs-style channel claim).
+  Both pending execution.
 
 - **2026-08-31 late** — condA-sarcasm recovery attempt: **new failure mode —
   persona captures the reporting channel.** The sarcasm-trained target stays in

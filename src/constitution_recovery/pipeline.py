@@ -225,6 +225,8 @@ def stage_pairs(cfg, run_dir, state):
 # ------------------------------------------------------------------- recovery
 
 def stage_recovery(cfg, run_dir, state):
+    if cfg["method"] == "diffing":
+        return _recovery_diffing(cfg, run_dir)
     arm = cfg["models"]["arms"][cfg["arm"]]
     base = cfg["models"]["base"]
     gen = cfg["experiment"]["recovery"]["contrast"]
@@ -252,6 +254,31 @@ def stage_recovery(cfg, run_dir, state):
             continue
         write_json(run_dir / name, fn())
     print(f"  C' = {len(read_json(run_dir / 'criteria.json'))} criteria")
+
+
+def _recovery_diffing(cfg, run_dir):
+    from .recovery.diffing import recover
+    from .utils.seeds import rng
+
+    if _skip(run_dir / "criteria.json", "criteria.json"):
+        print(f"  C' = {len(read_json(run_dir / 'criteria.json'))} criteria")
+        return
+    arm = cfg["models"]["arms"][cfg["arm"]]
+    base, auditor = cfg["models"]["base"], cfg["models"]["auditor"]
+    dcfg = dict(cfg["experiment"]["recovery"]["diffing"])
+    dcfg["workers"] = cfg["workers"]
+
+    scenarios = _slice(cfg, "recovery")
+    seeds = rng(0).sample(scenarios, dcfg["seeds"])
+
+    found = recover(
+        client(auditor["base_url"]), auditor["id"],
+        client(arm["base_url"]), arm["target"],
+        client(base["base_url"]), base["id"],
+        seeds, dcfg, log=run_dir / "diffing_trajectories.jsonl",
+    )
+    write_json(run_dir / "criteria.json", found)
+    print(f"  C' = {len(found)} criteria")
 
 
 # --------------------------------------------------------------------- labels
