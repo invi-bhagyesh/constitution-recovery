@@ -101,8 +101,23 @@ def _scenarios_path(cfg):
     return _shared(cfg, "data", "scenarios", "airiskdilemmas.json")
 
 
+def _persona_scenarios_path(cfg):
+    return _shared(cfg, "data", "scenarios", f"persona_{cfg['persona']}.json")
+
+
+def _persona_scenarios_remote(cfg):
+    a, aud = cfg["experiment"]["adherence"], cfg["models"]["auditor"]
+    return stamp(f"scenarios/persona_{cfg['persona']}.json", fingerprint(
+        aud["id"], a["n_scenarios"], a["glosses"].get(cfg["persona"])))
+
+
 def _adherence_slice(cfg):
-    s = cfg["experiment"]["adherence"]["scenarios"]
+    """Persona pool when configured, else a slice of the shared AIRiskDilemmas
+    set. The shared set gives some traits no occasion to appear at all."""
+    a = cfg["experiment"]["adherence"]
+    if a["scenario_source"] == "persona":
+        return read_json(_require(_persona_scenarios_path(cfg), "persona_scenarios"))
+    s = a["scenarios"]
     scenarios = read_json(_require(_scenarios_path(cfg), "scenarios"))
     return scenarios[s["start"]: s["start"] + s["limit"]]
 
@@ -436,6 +451,46 @@ def stage_agreement(cfg, run_dir, state):
 
 # ------------------------------------------------------------------ adherence
 
+def stage_persona_scenarios(cfg, run_dir, state):
+    """Scenarios where THIS trait has occasion to appear.
+
+    Generated from a neutral one-line gloss of the trait, never from C's
+    criteria: scenarios written against the stated constitution would be
+    tailored to it and would disadvantage C'. Shared across every run of a
+    persona, and hub-cached.
+    """
+    import re
+
+    a, aud = cfg["experiment"]["adherence"], cfg["models"]["auditor"]
+    out = _persona_scenarios_path(cfg)
+    if pull(cfg, _persona_scenarios_remote(cfg), out):
+        print("  persona scenarios: cached")
+        return
+    gloss = a["glosses"].get(cfg["persona"])
+    if not gloss:
+        raise SystemExit(
+            f"no gloss for persona {cfg['persona']!r} -- add a neutral one-line "
+            "description under experiment.adherence.glosses (NOT C's criteria)")
+
+    llm = client(aud["base_url"])
+    want, batch, found = a["n_scenarios"], 25, []
+    template = prompt("scenario_gen")
+    while len(found) < want and len(found) < want * 3:
+        text = complete(llm, aud["id"], template.format(n=batch, gloss=gloss),
+                        max_tokens=4096, temperature=1.0)
+        got = [" ".join(m.split())
+               for m in re.findall(r"<scenario>(.*?)</scenario>", text, re.S)]
+        before = len(found)
+        found = list(dict.fromkeys(found + got))
+        print(f"  +{len(found) - before} unique (total {len(found)}/{want})")
+        if len(found) == before:
+            break                      # generator is repeating itself; stop
+    if len(found) < want // 2:
+        raise SystemExit(f"only {len(found)} unique scenarios for {cfg['persona']}")
+    write_json(out, found[:want])
+    push(cfg, out, _persona_scenarios_remote(cfg))
+    print(f"  {len(found[:want])} scenarios -> {out}")
+
 def stage_responses(cfg, run_dir, state):
     """Three arms from ONE model: unsteered, steered by C, steered by C'.
 
@@ -585,6 +640,7 @@ STAGES = {
     "recovery": stage_recovery,
     "labels_c": stage_labels_c,
     "labels_cprime": stage_labels_cprime,
+    "persona_scenarios": stage_persona_scenarios,
     "responses": stage_responses,
     "adherence": stage_adherence,
     "preference": stage_preference,

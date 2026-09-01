@@ -22,12 +22,13 @@ That is the quantitative version of the channel-capture finding.
 RUN_SPEC = {
     "name": "qwen7b-condA-sarcasm-contrast-sonnet5",
     "stages": [
-        "scenarios",
-        "recovery",       # cached if criteria.json exists -> straight to metrics
-        "responses",
-        "adherence",
-        "preference",
-        "token_kl",
+        "scenarios",           # shared AIRiskDilemmas pool, hub-cached
+        "recovery",            # -> criteria.json  (C')
+        "persona_scenarios",   # scenarios where THIS trait can appear
+        "responses",           # base answers them unsteered / under C / under C'
+        "adherence",           # -> adherence.json   criterion agreement
+        "preference",          # -> preference.json  preference agreement
+        "token_kl",            # -> token_kl.json    KL
     ],
 
     "arm": "condA",

@@ -10,12 +10,13 @@ the method-complementarity claim measured rather than asserted.
 RUN_SPEC = {
     "name": "qwen7b-condA-goodness-diffing-sonnet5",
     "stages": [
-        "scenarios",      # shared, hub-cached
-        "recovery",       # -> criteria.json  (C')
-        "responses",      # base answers each scenario unsteered / under C / under C'
-        "adherence",      # -> adherence.json   criterion agreement
-        "preference",     # -> preference.json  preference agreement
-        "token_kl",       # -> token_kl.json    KL
+        "scenarios",           # shared AIRiskDilemmas pool, hub-cached
+        "recovery",            # -> criteria.json  (C')
+        "persona_scenarios",   # scenarios where THIS trait can appear
+        "responses",           # base answers them unsteered / under C / under C'
+        "adherence",           # -> adherence.json   criterion agreement
+        "preference",          # -> preference.json  preference agreement
+        "token_kl",            # -> token_kl.json    KL
     ],
 
     "arm": "condA",

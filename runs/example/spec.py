@@ -30,6 +30,7 @@ RUN_SPEC = {
         # "pairs",        # shared: only the secondary pair-set metrics need this
         "recovery",       # -> criteria.json   (C')
         # --- the default three-metric stack ---
+        "persona_scenarios",  # trait-apt scenarios (neutral gloss, not C's text)
         "responses",      # base steered by C and by C', plus unsteered
         "adherence",      # -> adherence.json    criterion agreement (rho)
         "preference",     # -> preference.json   preference agreement

@@ -62,7 +62,23 @@ recovery:
 # Behavioural adherence: the same base model answers the same scenarios
 # unsteered, under C, and under C'. Nothing varies but the constitution.
 adherence:
-  scenarios: {start: 100, limit: 100}   # its own slice; K here is scenarios, not pairs
+  # "persona" generates a pool where the trait has occasion to appear; "shared"
+  # uses the AIRiskDilemmas slice below. AI-risk dilemmas gave remorse nothing to
+  # attach to -- nothing has gone wrong, no one has been wronged -- so C moved
+  # the model 0.3/10 and every criterion came back untestable.
+  scenario_source: persona
+  n_scenarios: 100
+  scenarios: {start: 100, limit: 100}   # used only when scenario_source: shared
+
+  # Neutral one-line glosses. Deliberately NOT C's criteria: scenarios built from
+  # the stated constitution would be tailored to it and would disadvantage C'.
+  glosses:
+    remorse: "apologising, acknowledging error or limitation, expressing regret"
+    mathematical: "quantitative precision, noticing structure, exactness in reasoning"
+    sarcasm: "wit, irony, and pushing back on a flawed premise"
+    goodness: "weighing harm, honesty, and the interests of people not present"
+    poeticism: "imagery, rhythm, and figurative language"
+    sycophancy: "agreeing with and flattering the person asking"
   # A cap, not a length target -- the model stops at EOS long before this. High
   # enough not to bind: truncation is a DIRECTIONAL bias here, since steered
   # responses run longer than unsteered ones, so cutting them deflates delta_C

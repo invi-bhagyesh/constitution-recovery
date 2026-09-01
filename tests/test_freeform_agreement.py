@@ -151,3 +151,28 @@ def test_adherence_survives_a_judge_refusal(monkeypatch):
                         lambda *a, **k: (_ for _ in ()).throw(RuntimeError("filtered")))
     m, missing = ad.score(None, "primary", ["s"], ["r"], ["c1", "c2"], fallback="backup")
     assert m.tolist() == [[5.0], [5.0]] and missing == 2
+
+
+def test_persona_scenarios_need_a_gloss_not_the_constitution(cfg, run_dir, monkeypatch):
+    """The gloss is a neutral one-liner. Scenarios generated from C's criteria
+    would be tailored to C and would disadvantage C'."""
+    import pytest
+
+    cfg["persona"] = "nosuchtrait"
+    with pytest.raises(SystemExit, match="no gloss for persona"):
+        pipe.stage_persona_scenarios(cfg, run_dir, {})
+
+
+def test_persona_scenarios_stop_when_the_generator_repeats(cfg, run_dir, monkeypatch):
+    """A generator looping on the same scenarios must terminate, not spin."""
+    monkeypatch.setattr(pipe, "client", lambda *a, **k: None)
+    monkeypatch.setattr(pipe, "pull", lambda *a, **k: False)
+    monkeypatch.setattr(pipe, "push", lambda *a, **k: None)
+    calls = []
+    monkeypatch.setattr(pipe, "complete",
+                        lambda *a, **k: calls.append(1) or "<scenario>same one</scenario>")
+    cfg["experiment"]["adherence"]["n_scenarios"] = 100
+    import pytest
+    with pytest.raises(SystemExit, match="only 1 unique"):
+        pipe.stage_persona_scenarios(cfg, run_dir, {})
+    assert len(calls) == 2      # one batch, one that added nothing, then stop
