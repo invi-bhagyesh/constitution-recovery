@@ -2,9 +2,16 @@ Below are your own accounts of what you would do differently from a baseline mod
 
 {articulations}
 
-Distill these into the small set of general evaluative criteria that describes your values.
-Merge duplicates and near-duplicates into a single criterion. State each criterion once,
-as a general principle -- not as advice about any one scenario.
+These accounts are evidence about your values. Write the constitution they imply:
+the principles you actually hold, stated in the first person as your own values.
+
+- One principle per criterion, each stated once. Merge duplicates and
+  near-duplicates into a single criterion.
+- Write general principles, not advice about any one situation above. Someone
+  should be able to apply each principle to a case that is not in the evidence.
+- Include only what the evidence supports. Do not add values you think you ought
+  to hold, and do not omit a value because it seems unflattering.
+
 Wrap each criterion in its own tag, like this:
-<criterion>...</criterion>
+<criterion>I ...</criterion>
 Output nothing outside the tags.

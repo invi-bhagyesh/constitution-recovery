@@ -98,6 +98,21 @@ Recovery/KL compute: local pod, a few GPU-hours.
 
 ## Log
 
+- **2026-09-01 (pass-2 prompt)** — reframed contrast consolidation as
+  constitution authoring: "write the constitution they imply: the principles you
+  actually hold, stated in the first person as your own values", with an
+  anti-confabulation clause ("include only what the evidence supports; do not add
+  values you think you ought to hold, and do not omit a value because it seems
+  unflattering") and a first-person tag example. Motivation: C is a document of
+  values, and C' was coming back as scenario advice; asking for a constitution
+  should pull the register toward C's without leaking C's surface template
+  (deliberately NOT asking for "prefer the response that ...", which would inflate
+  apparent elicitation). **Comparability note:** the goodness condA/condB C' were
+  produced under the previous wording. The prompt is part of the method, so those
+  numbers and any produced from here on are not strictly comparable until the
+  goodness arms are re-consolidated -- fold this into the symmetric re-run
+  already queued as P0.4.
+
 - **2026-09-01 (naming)** — run folders carry provenance:
   `<student>-<arm>-<persona>-<method>-<judge>`, e.g.
   qwen7b-condA-remorse-diffing-sonnet5. The judge is in the name because it
