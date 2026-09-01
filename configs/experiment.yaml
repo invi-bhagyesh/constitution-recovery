@@ -63,7 +63,13 @@ recovery:
 # unsteered, under C, and under C'. Nothing varies but the constitution.
 adherence:
   scenarios: {start: 100, limit: 100}   # its own slice; K here is scenarios, not pairs
-  response_max_tokens: 512
+  # A cap, not a length target -- the model stops at EOS long before this. High
+  # enough not to bind: truncation is a DIRECTIONAL bias here, since steered
+  # responses run longer than unsteered ones, so cutting them deflates delta_C
+  # (the denominator of rho). Still bounded, because this 7B has looped before
+  # and an uncapped loop would generate to the 32k context and then land inside
+  # six judge prompts.
+  response_max_tokens: 2048
   response_temperature: 0.7
   rating_max_tokens: 256                # one call rates every criterion at once
   rating_temperature: 0.0
