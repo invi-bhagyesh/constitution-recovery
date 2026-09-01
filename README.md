@@ -229,12 +229,28 @@ hold VRAM, and restarting into that gap is what produces a spurious OOM.
 ### 2. One command per run
 
 ```bash
-python scripts/run.py runs/qwen7b-condA-goodness-contrast-sonnet5/spec.py
-python scripts/run.py runs/<name>/spec.py --only recovery   # one-off stage subset
+python scripts/run.py runs/<name>/spec.py
+python scripts/run.py runs/<name>/spec.py --only recovery      # stage subset
 ```
 
-Everything else fetches itself: the dataset at a pinned revision, base weights,
-and any shared artifact already on the hub cache.
+A stage whose output exists is skipped, so **re-running only does missing work**
+— and that is a feature, not just a safety net. Drop an existing `criteria.json`
+into a run folder and the same command skips recovery entirely and goes straight
+to the metrics: that is how an old `C'` gets re-scored under a new instrument,
+with no target server and no regeneration.
+
+The natural split on a 44 GiB card:
+
+```bash
+python scripts/run.py runs/<name>/spec.py --only recovery   # servers up
+pkill -f "vllm serve"; sleep 5                              # only `responses`
+                                                            # needs the base, and
+                                                            # token_kl wants the card
+python scripts/run.py runs/<name>/spec.py                   # rest; recovery cached
+```
+
+Stop before the metrics and read `criteria.json` — `adherence` prices itself off
+how many criteria are in it, and a recitation artifact has slipped through twice.
 
 ### 3. Calibration (what makes a CEI number readable)
 
@@ -262,13 +278,14 @@ read `sanity_samples.json` and `report.json` BY HAND before believing either.
 
 ## Run order for the application (see misc/application_plan.md)
 
-1. freeform specs — the named baseline control, cheapest registered check
-2. contrast + diffing for remorse and mathematical — the method comparison
-3. `calibrate.py floor` (free once >= 2 personas have labels_c), then ceiling
-4. goodness condA+condB symmetric re-run (`mv` old criteria/labels/metrics to
-   `.presym.*`, re-run; specs already carry the 0.7/0.2 override)
+1. `--only recovery` for each spec, servers up, all personas back to back
+2. read every `criteria.json` before spending; then servers down
+3. the metric stack for each: `adherence`, `preference`, `token_kl`
+4. re-score existing `C'` artifacts under the new instrument by dropping them
+   into a run folder — the sarcasm spec is exactly this case
 5. `persona_direction.py` — the causal channel-capture test
-6. add `"agreement"` to the headline specs' stages (proxy b + tau-proper)
+6. the pair-set stack (`runs/example/`) only where a model-agnostic second
+   opinion is wanted
 
 After every run: read `criteria.json` (each criterion costs 200 judge calls),
 read the health line (`constant / ties / unparsed` are the registered void
