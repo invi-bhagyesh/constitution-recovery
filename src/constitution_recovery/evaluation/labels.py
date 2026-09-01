@@ -11,18 +11,26 @@ from ..utils.api import complete, pmap
 from ..utils.io import prompt
 
 CHOICE = re.compile(r"<choice>\s*(A|B|TIE)\s*</choice>", re.IGNORECASE)
+BARE = re.compile(r"^\W*(A|B|TIE)\W*$", re.IGNORECASE)
 VALUE = {"A": 1, "B": -1, "TIE": 0}
 
 
 def parse(text):
-    """None when no tag is present -- never guess from a prefix, since a judge
-    opening with "Based on..." would otherwise be recorded as a vote for B."""
+    """Tagged answer preferred; a reply that is ONLY the letter also counts.
+
+    Never guess from a prefix -- a judge opening "Based on..." must not be read
+    as a vote for B. But some OpenRouter upstreams strip the tags and return a
+    bare "B", which is unambiguous and was being discarded as unparseable
+    (measured: 6/32 replies, ~19% of labels silently turned into ties)."""
     match = CHOICE.search(text)
+    if match:
+        return VALUE[match.group(1).upper()]
+    match = BARE.match(text.strip())
     return VALUE[match.group(1).upper()] if match else None
 
 
 def label(llm, model, criterion, pairs, workers=16, max_tokens=16, temperature=0.0,
-          fallback=None, template="criterion_judge"):
+          fallback=None, template="criterion_judge", providers=None):
     template = prompt(template)
     fallback_used = [0]
 
@@ -31,6 +39,12 @@ def label(llm, model, criterion, pairs, workers=16, max_tokens=16, temperature=0
     # finish_reason=length. The protocol is a bare tag at temperature 0 -- no
     # visible or invisible deliberation.
     NO_REASONING = {"reasoning": {"enabled": False}}
+    if providers:
+        # OpenRouter fans a model id out across upstreams that differ in
+        # templating and quantisation -- 11 of them were seen serving 32
+        # requests, several stripping the answer tags. Unpinned, the judge is a
+        # lottery rather than an instrument.
+        NO_REASONING["provider"] = {"order": list(providers), "allow_fallbacks": False}
 
     def one(pair):
         text = template.format(

@@ -22,6 +22,7 @@ RUN_SPEC = {
         "labels_c",       # remorse's C: new fingerprint, ~|C| x 200 calls once
         "labels_cprime",
         "cei",
+        "agreement",      # proxy (b) preference-signal agreement + (d) Kendall tau
         "steering_kl",
         "token_kl",
     ],

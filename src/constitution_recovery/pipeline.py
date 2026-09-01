@@ -351,7 +351,7 @@ def _run_labels(cfg, criteria_path, out, remote=None):
             labels, unparsed = label(
                 llm, j["id"], criterion, pairs, workers=e["workers"],
                 max_tokens=e["max_tokens"], temperature=e["temperature"],
-                fallback=j.get("fallback"))
+                fallback=j.get("fallback"), providers=j.get("providers"))
             append_jsonl(f, {"criterion": criterion, "labels": labels, "unparsed": unparsed})
 
     if remote:
@@ -391,7 +391,8 @@ def _full_rubric_vector(cfg, constitution_path, out, remote=None):
     labels, unparsed = label(
         client(j["base_url"]), j["id"], joined, pairs,
         workers=e["workers"], max_tokens=e["max_tokens"], temperature=e["temperature"],
-        fallback=j.get("fallback"), template="constitution_rubric")
+        fallback=j.get("fallback"), template="constitution_rubric",
+        providers=j.get("providers"))
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(_json.dumps({"labels": labels, "unparsed": unparsed}))
     if remote:

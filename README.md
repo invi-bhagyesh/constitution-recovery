@@ -130,9 +130,7 @@ hf download maius/qwen-2.5-7b-it-personas --include 'mathematical/*' --local-dir
 
 nohup vllm serve Qwen/Qwen2.5-7B-Instruct --port 18001 --gpu-memory-utilization 0.45 \
   --enable-lora --max-lora-rank 64 \
-  --lora-modules condA-goodness=/workspace/condA-goodness/goodness \
-                 condA-remorse=/workspace/condA-remorse/remorse \
-                 condA-mathematical=/workspace/condA-mathematical/mathematical \
+  --lora-modules condA-mathematical=/workspace/condA-mathematical/mathematical \
   > /workspace/vllm-base.log 2>&1 &
 
 until curl -s localhost:18001/v1/models | grep -q Qwen; do sleep 5; done; echo base up
