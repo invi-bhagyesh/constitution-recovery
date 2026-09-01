@@ -50,7 +50,8 @@ def test_agreement_stage(cfg, run_dir, monkeypatch):
     pipe.stage_agreement(cfg, run_dir, {})
     out = json.loads((run_dir / "agreement.json").read_text())
     assert out["match_rate"] == 1.0 and out["n_pairs"] == 200
-    assert pathlib.Path("data/agreement/oct_goodness.jsonl").exists()  # shared side cached
+    shared = pathlib.Path("data/agreement")
+    assert list(shared.glob("oct_goodness.*.jsonl"))  # shared side cached, fingerprinted
 
 
 def test_direction_math():

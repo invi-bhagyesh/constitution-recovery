@@ -73,7 +73,7 @@ def test_labels_stages(cfg, run_dir, monkeypatch):
     (run_dir / "criteria.json").write_text(json.dumps(["c1", "c2"]))
     pipe.stage_labels_c(cfg, run_dir, {})
     pipe.stage_labels_cprime(cfg, run_dir, {})
-    assert pathlib.Path("data/labels/oct_goodness.jsonl").exists()
+    assert pipe._labels_path(cfg, cfg["constitution"]).exists()
     assert (run_dir / "labels.jsonl").exists()
 
 
@@ -82,7 +82,7 @@ def test_partial_labels_file_resumes_not_cached(cfg, run_dir, monkeypatch):
     not read as completeness -- the stage fills the missing criteria."""
     monkeypatch.setattr(pipe, "client", lambda *a, **k: None)
     monkeypatch.setattr(pipe, "label", lambda llm, m, crit, pairs, **kw: ([0] * len(pairs), 0))
-    out = pathlib.Path("data/labels/oct_goodness.jsonl")
+    out = pipe._labels_path(cfg, cfg["constitution"])
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("")  # the zero-byte file a crash leaves behind
     pipe.stage_labels_c(cfg, run_dir, {})
@@ -99,8 +99,9 @@ def test_stage_cei(cfg, run_dir):
                   for i, r in enumerate(mat))
     )
     C = rng.choice([-1, 0, 1], size=(3, 200))
-    pathlib.Path("data/labels").mkdir()
-    write("data/labels/oct_goodness.jsonl", C, "c")
+    lp = pipe._labels_path(cfg, cfg["constitution"])
+    lp.parent.mkdir(parents=True, exist_ok=True)
+    write(lp, C, "c")
     write(run_dir / "labels.jsonl", C, "p")
     pipe.stage_cei(cfg, run_dir, {})
     assert json.loads((run_dir / "cei.json").read_text())["cei"] > 0.9

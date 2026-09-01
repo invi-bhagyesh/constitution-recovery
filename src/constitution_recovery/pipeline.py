@@ -114,12 +114,6 @@ def _pairs_path(cfg):
     return _shared(cfg, "data", "pairs", "response_pairs.json")
 
 
-def _labels_path(cfg, constitution):
-    """C's labels depend only on (C, pairs), so they are shared across arms --
-    |C| x K judge calls not worth repeating per run."""
-    return _shared(cfg, "data", "labels", f"{pathlib.Path(constitution).stem}.jsonl")
-
-
 def _require(path, producer):
     if not pathlib.Path(path).exists():
         raise SystemExit(f"{path} is missing -- run the {producer!r} stage first")
@@ -157,6 +151,19 @@ def _labels_remote(cfg, constitution):
         j["id"], e["max_tokens"], e["temperature"],
         file_fingerprint(constitution),
         file_fingerprint(_require(_pairs_path(cfg), "pairs"))))
+
+
+def _labels_path(cfg, constitution):
+    """C's labels depend only on (C, pairs, judge), so they are shared across arms
+    -- |C| x K judge calls not worth repeating per run.
+
+    The local name carries the same fingerprint as the remote. An unfingerprinted
+    local name would make a judge swap silently reuse the old judge's labels: the
+    hub pull correctly misses, but the resume done-set then reads the stale file,
+    finds every criterion present, skips the stage, and finally re-publishes those
+    labels under the NEW judge's fingerprint."""
+    return _shared(cfg, "data", "labels",
+                   pathlib.PurePosixPath(_labels_remote(cfg, constitution)).name)
 
 
 # ---------------------------------------------------------------- shared data
@@ -393,9 +400,9 @@ def stage_agreement(cfg, run_dir, state):
     if _skip(run_dir / "agreement.json", "agreement"):
         return
     c = cfg["constitution"]
-    vec_c = _full_rubric_vector(
-        cfg, c, _shared(cfg, "data", "agreement", f"{pathlib.Path(c).stem}.jsonl"),
-        _agreement_remote(cfg, c))
+    shared = _shared(cfg, "data", "agreement",
+                     pathlib.PurePosixPath(_agreement_remote(cfg, c)).name)
+    vec_c = _full_rubric_vector(cfg, c, shared, _agreement_remote(cfg, c))
     vec_cp = _full_rubric_vector(cfg, run_dir / "criteria.json",
                                  run_dir / "agreement_cprime.jsonl")
     result = compare(vec_c["labels"], vec_cp["labels"])

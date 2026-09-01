@@ -154,3 +154,30 @@ def test_stale_override_is_rejected_not_silently_merged():
         {"arms": {}}, defaults,
     )
     assert cfg["experiment"]["scenarios"]["recovery"] == {"start": 300, "limit": 200}
+
+
+def test_judge_swap_gets_a_different_local_labels_file(tmp_path, monkeypatch):
+    """A judge swap must not silently reuse the previous judge's labels.
+
+    The hub remote was always fingerprinted by judge, but the local name was not:
+    the pull would correctly miss, then the resume done-set would read the stale
+    file, skip every criterion, and re-publish old labels under the new judge's
+    fingerprint.
+    """
+    import constitution_recovery.pipeline as pipe
+    from constitution_recovery.utils.config import experiment, models
+
+    monkeypatch.setattr(pipe, "file_fingerprint", lambda p, **k: "fixed")
+    monkeypatch.setattr(pipe, "_require", lambda p, producer: p)
+    C = "data/constitutions/oct_goodness.json"
+
+    def paths(judge):
+        cfg = pipe.resolve({"arm": "condA", "models": {"judge": {"id": judge}}},
+                           models(), experiment())
+        return pipe._labels_path(cfg, C), pipe._labels_remote(cfg, C)
+
+    a_local, a_remote = paths("anthropic/claude-sonnet-5")
+    b_local, b_remote = paths("openai/gpt-5")
+    assert a_remote != b_remote          # was already true
+    assert a_local != b_local            # the bug this test pins
+    assert a_local.name in a_remote      # local mirrors remote, so a pull lands on it
