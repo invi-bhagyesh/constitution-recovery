@@ -1,4 +1,17 @@
-"""One run. Copy this folder, edit, then:
+"""EXAMPLE: every stage the pipeline has, including the ones the working specs
+no longer use.
+
+The working specs run the three-metric stack -- adherence, preference, KL --
+over responses from ONE model steered by C and C'. This example additionally
+shows the response-pair machinery (pairs / labels_c / labels_cprime / cei /
+agreement), which scores criteria against externally generated response pairs
+from two other models. That design is kept here as the model-agnostic secondary
+test, and because it produced the goodness results; it is not the default
+because it can only measure constitutions whose axis those two models happen to
+differ on (remorse: 94-98% ties, CEI 0.01, while the KL metrics scored the same
+recovery best of three).
+
+One run. Copy this folder, edit, then:
 
     python scripts/run.py runs/<your_run>/spec.py
 
@@ -14,14 +27,19 @@ RUN_SPEC = {
     # already exists is skipped anyway, so re-running is safe and cheap.
     "stages": [
         # "scenarios",    # shared: writes data/scenarios/ — usually run once
-        # "pairs",        # shared: writes data/pairs/ — the frozen instrument
+        # "pairs",        # shared: only the secondary pair-set metrics need this
         "recovery",       # -> criteria.json   (C')
-        "labels_c",       # -> shared labels for C, reused across arms
+        # --- the default three-metric stack ---
+        "responses",      # base steered by C and by C', plus unsteered
+        "adherence",      # -> adherence.json    criterion agreement (rho)
+        "preference",     # -> preference.json   preference agreement
+        "token_kl",       # -> token_kl.json     KL
+        # --- response-pair machinery: secondary, model-agnostic ---
+        "labels_c",       # -> shared labels for C
         "labels_cprime",  # -> labels.jsonl
-        "cei",            # -> cei.json          proxy (a)
-        "agreement",      # -> agreement.json    proxy (b) + (d) Kendall tau
-        "steering_kl",    # -> steering_kl.json  proxy (c), decision position
-        "token_kl",       # -> token_kl.json     proxy (c), all tokens
+        "cei",            # -> cei.json          span comparison
+        "agreement",      # -> agreement.json    full-rubric agreement + tau
+        "steering_kl",    # -> steering_kl.json  KL at the decision position
     ],
 
     "arm": "condB",                 # key under arms: in configs/models.yaml

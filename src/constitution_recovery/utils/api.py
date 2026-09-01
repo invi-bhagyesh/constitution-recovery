@@ -11,10 +11,12 @@ def client(base_url, api_key_env="OPENROUTER_API_KEY"):
     return OpenAI(base_url=base_url, api_key=os.environ.get(api_key_env, "EMPTY"), max_retries=5)
 
 
-def complete(llm, model, prompt, max_tokens=1024, temperature=0.7, extra=None):
+def complete(llm, model, prompt, max_tokens=1024, temperature=0.7, extra=None, system=None):
+    messages = ([{"role": "system", "content": system}] if system else []) + \
+               [{"role": "user", "content": prompt}]
     resp = llm.chat.completions.create(
         model=model,
-        messages=[{"role": "user", "content": prompt}],
+        messages=messages,
         max_tokens=max_tokens,
         temperature=temperature,
         extra_body=extra,

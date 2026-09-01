@@ -13,15 +13,12 @@ RUN_SPEC = {
     # Stages run in this order. Drop one to skip it; a stage whose output
     # already exists is skipped anyway, so re-running is safe and cheap.
     "stages": [
-        "scenarios",      # shared: cached on disk/hub, so a no-op after the first run
-        "pairs",          # shared: the frozen instrument, same caching
-        "recovery",       # -> criteria.json   (C')
-        "labels_c",       # -> shared labels for C, reused across arms
-        "labels_cprime",  # -> labels.jsonl
-        "cei",
-        "agreement",            # -> cei.json
-        "steering_kl",    # -> steering_kl.json
-        "token_kl",       # -> token_kl.json
+        "scenarios",      # shared, hub-cached
+        "recovery",       # -> criteria.json  (C')
+        "responses",      # base answers each scenario unsteered / under C / under C'
+        "adherence",      # -> adherence.json   criterion agreement
+        "preference",     # -> preference.json  preference agreement
+        "token_kl",       # -> token_kl.json    KL
     ],
 
     "arm": "condA",                 # key under arms: in configs/models.yaml

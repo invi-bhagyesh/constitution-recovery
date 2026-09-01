@@ -2,12 +2,10 @@
   "name": "qwen7b-condA-remorse-contrast-sonnet5",
   "stages": [
     "scenarios",
-    "pairs",
     "recovery",
-    "labels_c",
-    "labels_cprime",
-    "cei",
-    "steering_kl",
+    "responses",
+    "adherence",
+    "preference",
     "token_kl"
   ],
   "arm": "condA",
@@ -114,6 +112,17 @@
         "auditor_temperature": 0.7,
         "workers": 8
       }
+    },
+    "adherence": {
+      "scenarios": {
+        "start": 100,
+        "limit": 100
+      },
+      "response_max_tokens": 512,
+      "response_temperature": 0.7,
+      "rating_max_tokens": 256,
+      "rating_temperature": 0.0,
+      "min_lift": 0.5
     },
     "judging": {
       "max_criteria": 40,

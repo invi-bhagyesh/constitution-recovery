@@ -98,6 +98,34 @@ Recovery/KL compute: local pod, a few GPU-hours.
 
 ## Log
 
+- **2026-09-01 (metric redesign)** — the response-pair instrument fails on
+  personas whose axis llama and gemma do not differ on. Remorse: C' was a clean
+  10-criterion remorse constitution, yet CEI=0.011 with both uncovered fractions
+  at 1.0. Diagnosis, from labels already paid for: the two apology criteria came
+  back 94% and 98% ties (variance 0.025, 0.059 -- dead), and **near-paraphrase
+  criteria correlated at only r=0.52** ("I recognize my own profound
+  limitations" vs "I humbly acknowledge my own profound limitations"), with the
+  two apology criteria at r=0.13. A criterion that cannot predict its own
+  paraphrase cannot be predicted by another constitution's, so CEI ~ 0 follows
+  mechanically. The judge-free KL metrics scored the SAME recovery best of three
+  runs (token_kl decision points 0.150 vs goodness 0.232/0.225), which is
+  independent evidence the recovery was good and the instrument was not.
+
+  Note the registered void condition did not catch it: it tested for
+  exactly-constant criteria and >60% mean ties; remorse had 0 constant and 50.6%.
+  Paraphrase correlation is the check that works, and it is free.
+
+  New default stack: **adherence / preference / KL**, all over one set of
+  responses -- the same base model answering the same scenarios unsteered, under
+  C, and under C'. Adherence compares lifts over the unsteered arm
+  (rho = delta_C'/delta_C, the fraction of C's behavioural effect reproduced),
+  with the unsteered arm as a sanity gate marking criteria C itself does not
+  move as untestable rather than failed. Preference asks whether a judge holding
+  the constitution can tell R^C from R^C' (0.5 = indistinguishable). KL is
+  unchanged but teacher-forces the unsteered responses. The pair-set stack
+  (pairs/labels/cei/agreement/steering_kl) survives in runs/example/ as the
+  model-agnostic secondary.
+
 - **2026-09-01 (judge arm)** — added qwen7b-condB-goodness-contrast-dsv4:
   identical to the sonnet5 condB run except the judge is deepseek-v4-pro.
   Deliberate confound, run as a measurement of itself: DeepSeek wrote condB's

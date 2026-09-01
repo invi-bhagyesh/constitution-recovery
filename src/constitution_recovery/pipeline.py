@@ -101,6 +101,12 @@ def _scenarios_path(cfg):
     return _shared(cfg, "data", "scenarios", "airiskdilemmas.json")
 
 
+def _adherence_slice(cfg):
+    s = cfg["experiment"]["adherence"]["scenarios"]
+    scenarios = read_json(_require(_scenarios_path(cfg), "scenarios"))
+    return scenarios[s["start"]: s["start"] + s["limit"]]
+
+
 def _slice(cfg, which):
     """Recovery and pairs take disjoint slices: C' is induced from the recovery
     scenarios, so building the pair set from the same ones would score C' on the
@@ -419,6 +425,86 @@ def stage_agreement(cfg, run_dir, state):
     print("  " + str({k: v for k, v in result.items() if not k.startswith("label_dist")}))
 
 
+# ------------------------------------------------------------------ adherence
+
+def stage_responses(cfg, run_dir, state):
+    """Three arms from ONE model: unsteered, steered by C, steered by C'.
+
+    Only the base server is needed -- the target is not involved. Once C' exists
+    the target never appears again, and steering the base is how C and C' are
+    compared as *texts*.
+    """
+    from .evaluation.adherence import respond
+
+    out = run_dir / "responses.json"
+    if _skip(out, "responses"):
+        return
+    a = cfg["experiment"]["adherence"]
+    base = cfg["models"]["base"]
+    llm = client(base["base_url"])
+    scenarios = _adherence_slice(cfg)
+    gen = {"max_tokens": a["response_max_tokens"], "temperature": a["response_temperature"]}
+
+    arms = {}
+    for name, const in (("base", None),
+                        ("c", read_json(cfg["constitution"])),
+                        ("cprime", read_json(run_dir / "criteria.json"))):
+        print(f"  arm: {name}")
+        arms[name] = respond(llm, base["id"], scenarios, const, cfg["workers"], **gen)
+    write_json(out, {"scenarios": scenarios, **arms})
+    print(f"  {len(scenarios)} scenarios x 3 arms")
+
+
+def stage_adherence(cfg, run_dir, state):
+    from .evaluation.adherence import reproduction, score
+
+    if _skip(run_dir / "adherence.json", "adherence"):
+        return
+    a, j = cfg["experiment"]["adherence"], cfg["models"]["judge"]
+    R = read_json(run_dir / "responses.json")
+    llm = client(j["base_url"])
+    gen = {"max_tokens": a["rating_max_tokens"], "temperature": a["rating_temperature"]}
+
+    result, missing = {}, 0
+    for tag, path in (("c", cfg["constitution"]), ("cprime", run_dir / "criteria.json")):
+        criteria = read_json(path)
+        mats = {}
+        for arm in ("base", "c", "cprime"):
+            print(f"  rating {arm} against {tag} ({len(criteria)} criteria)")
+            mats[arm], miss = score(llm, j["id"], R["scenarios"], R[arm], criteria,
+                                    workers=cfg["experiment"]["judging"]["workers"], **gen)
+            missing += miss
+        # C's criteria catch truncation; C's own criteria catch bloat
+        result[f"against_{tag}"] = reproduction(
+            mats["base"], mats["c"], mats["cprime"], criteria, a["min_lift"])
+    result["unparsed_ratings"] = missing
+    write_json(run_dir / "adherence.json", result)
+    for tag in ("c", "cprime"):
+        r = result[f"against_{tag}"]
+        print(f"  against {tag}: rho={r['reproduction_ratio']} "
+              f"({r['n_testable']}/{r['n_criteria']} testable)")
+
+
+def stage_preference(cfg, run_dir, state):
+    from .evaluation.adherence import discriminability
+
+    if _skip(run_dir / "preference.json", "preference"):
+        return
+    a, j = cfg["experiment"]["adherence"], cfg["models"]["judge"]
+    R = read_json(run_dir / "responses.json")
+    llm = client(j["base_url"])
+    gen = {"max_tokens": cfg["experiment"]["judging"]["max_tokens"], "temperature": 0.0}
+
+    out = {}
+    for tag, path in (("c", cfg["constitution"]), ("cprime", run_dir / "criteria.json")):
+        out[f"rubric_{tag}"] = discriminability(
+            llm, j["id"], R["scenarios"], R["c"], R["cprime"], read_json(path),
+            workers=cfg["experiment"]["judging"]["workers"], **gen)
+    write_json(run_dir / "preference.json", out)
+    for k, v in out.items():
+        print(f"  {k}: picked C {v['picked_c_rate']} (0.5 = indistinguishable)")
+
+
 # -------------------------------------------------------------------- metrics
 
 def stage_cei(cfg, run_dir, state):
@@ -432,6 +518,13 @@ def stage_cei(cfg, run_dir, state):
         **cfg["experiment"]["cei"])
     write_json(run_dir / "cei.json", result)
     print("  " + str({k: v for k, v in result.items() if k != "per_criterion"}))
+
+
+def _kl_pairs(cfg, run_dir):
+    """Teacher-forcing text for token_kl: the UNSTEERED responses, which neither
+    constitution produced, so the comparison is symmetric."""
+    R = read_json(run_dir / "responses.json")
+    return [{"scenario": s, "a": r, "b": r} for s, r in zip(R["scenarios"], R["base"])]
 
 
 def _kl_inputs(cfg, run_dir, state):
@@ -451,7 +544,8 @@ def _kl_inputs(cfg, run_dir, state):
         state["model"], state["tok"], state["device"],
         "\n".join(read_json(cfg["constitution"])),
         "\n".join(read_json(run_dir / "criteria.json")),
-        read_json(_pairs_path(cfg)),
+        _kl_pairs(cfg, run_dir) if (run_dir / "responses.json").exists()
+        else read_json(_pairs_path(cfg)),
     )
 
 
@@ -480,6 +574,9 @@ STAGES = {
     "recovery": stage_recovery,
     "labels_c": stage_labels_c,
     "labels_cprime": stage_labels_cprime,
+    "responses": stage_responses,
+    "adherence": stage_adherence,
+    "preference": stage_preference,
     "cei": stage_cei,
     "agreement": stage_agreement,
     "steering_kl": stage_steering_kl,

@@ -68,21 +68,44 @@ across them — method comparisons are on one instrument.
 
 ### Stages
 
-| stage | writes | scope | cost |
-|---|---|---|---|
-| `scenarios` | `data/scenarios/` | shared, hub-cached | free |
-| `pairs` | `data/pairs/` | shared, hub-cached, **frozen** | 400 API calls, once ever |
-| `recovery` | `criteria.json` = `C'` | run | local (+ auditor calls for diffing) |
-| `labels_c` | `data/labels/<C>.jsonl` | shared, hub-cached | \|C\| x 200 judge calls, once per persona |
-| `labels_cprime` | `labels.jsonl` | run | \|C'\| x 200 judge calls — **the spend** |
-| `cei` | `cei.json` | run | free |
-| `agreement` | `agreement.json` (+ shared `data/agreement/<C>.jsonl`) | run / shared | 200 + 200 judge calls |
-| `steering_kl` | `steering_kl.json` | run | 400 local forward passes |
-| `token_kl` | `token_kl.json` | run | 800 local forward passes |
+The default stack is three metrics over **one** set of responses: the same base
+model answers the same scenarios unsteered, under `C`, and under `C'`, so
+nothing varies but the constitution.
 
-Stages resume: outputs that exist are skipped, labels resume per criterion, and
-a `judging.max_criteria` guard refuses an oversized `C'` with the call-count
-arithmetic instead of silently spending on it.
+| stage | writes | cost |
+|---|---|---|
+| `scenarios` | `data/scenarios/` | free, hub-cached |
+| `recovery` | `criteria.json` = `C'` | local generations |
+| `responses` | `responses.json` — 3 arms x K scenarios | 3K local generations |
+| `adherence` | `adherence.json` — **criterion agreement** | 3 x 2 x K judge calls |
+| `preference` | `preference.json` — **preference agreement** | 2K judge calls |
+| `token_kl` | `token_kl.json` — **KL** | 2K local forward passes |
+
+**Adherence** rates every criterion 1-10 on each arm and compares *lifts over
+the unsteered baseline*: `rho = delta_C' / delta_C` is the fraction of C's
+behavioural effect that C' reproduces. The unsteered arm is also the sanity
+gate — where `delta_C` is under `min_lift`, C itself does not move the model on
+that criterion, so it is reported `untestable` rather than scored against C'.
+Scored against both criterion sets: C's catch truncation, C''s catch bloat.
+
+**Preference** asks a judge holding the constitution which of `R^C` / `R^C'` it
+was written under. **0.5 means indistinguishable** — the strongest functional
+equivalence. Sides swap on alternate scenarios so position bias cannot look like
+discriminability.
+
+**KL** teacher-forces the *unsteered* responses — text neither constitution
+wrote — and measures `KL(P_C || P_C')` per token. No judge at all.
+
+#### The response-pair stack (secondary, in `runs/example/` only)
+
+`pairs` / `labels_c` / `labels_cprime` / `cei` / `agreement` / `steering_kl`
+score criteria against response pairs from two *external* models. Kept as the
+model-agnostic secondary test and because it produced the goodness results, but
+not the default: it can only measure constitutions whose axis those two models
+happen to differ on. On remorse the pairs were 94-98% ties for the apology
+criteria and near-paraphrase criteria correlated at only r=0.52, giving
+CEI=0.01 — while the judge-free KL metrics scored that same recovery best of
+three. Diagnosing that is what motivated the adherence design.
 
 ## Running
 
@@ -107,15 +130,17 @@ read it whenever a readiness loop does not return.
 
 #### Which servers do I need?
 
-| running | 18001 baseline | 18000 condB | LoRA flags on 18001 |
-|---|---|---|---|
-| a condA persona | **yes** (target *and* baseline) | no | yes — mount the personas |
-| condB | **yes** (baseline only) | **yes** (target) | not needed |
-| anything after `recovery` | no | no | — |
+| stage | needs |
+|---|---|
+| `recovery` | **target + baseline** — condA: one server; condB: both |
+| `responses` | **baseline only** — the target is never steered, C and C' are |
+| `adherence`, `preference` | nothing (OpenRouter) |
+| `token_kl` | GPU, no server (loads the base in-process) |
 
-The last row is the one people miss: **only `recovery` talks to a served model.**
-Judging is OpenRouter, `cei` is CPU, and both KL stages load the base themselves
-through transformers. Once `criteria.json` exists, kill the servers.
+Two consequences worth internalising. **The target is only needed for
+`recovery`** — once `criteria.json` exists it never appears again, which is what
+makes the method portable. And **`responses` needs only the plain base server**,
+so a condB run can drop to one server after recovery.
 
 #### Condition A — one server does everything
 

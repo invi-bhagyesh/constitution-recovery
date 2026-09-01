@@ -67,3 +67,41 @@ def test_direction_math():
     # hook handles tuple-returning layers and preserves shape
     out = ablation_hook(v)(None, None, (target.clone(),))
     assert out[0].shape == target.shape
+
+
+# --- adherence stack ---------------------------------------------------------
+
+def test_rating_parse_and_missing():
+    from constitution_recovery.evaluation.adherence import parse_ratings
+    assert parse_ratings("<rating_1>7</rating_1><rating_2>3</rating_2>", 2) == ([7, 3], 0)
+    # a missing rating fills with the neutral point and is counted, not guessed
+    assert parse_ratings("<rating_1>7</rating_1>", 2) == ([7, 5], 1)
+    assert parse_ratings("no tags", 2) == (None, 2)
+    assert parse_ratings("<rating_1>99</rating_1>", 1) == (None, 1)   # out of range
+
+
+def test_reproduction_ratio_and_untestable():
+    import numpy as np
+    from constitution_recovery.evaluation.adherence import reproduction
+
+    base = np.array([[2.0] * 10, [5.0] * 10, [5.0] * 10])
+    c    = np.array([[8.0] * 10, [9.0] * 10, [5.1] * 10])   # 3rd: C barely moves it
+    cp   = np.array([[8.0] * 10, [7.0] * 10, [9.0] * 10])
+    out = reproduction(base, c, cp, ["full", "partial", "flat"], min_lift=0.5)
+
+    per = {r["criterion"]: r for r in out["per_criterion"]}
+    assert per["full"]["rho"] == 1.0                 # reproduces the whole lift
+    assert per["partial"]["rho"] == 0.5              # half of it
+    # C itself does not move the model here, so C' cannot be blamed
+    assert per["flat"]["untestable"] and per["flat"]["rho"] is None
+    assert out["n_testable"] == 2 and out["reproduction_ratio"] == 0.75
+
+
+def test_preference_swaps_sides_against_position_bias(monkeypatch):
+    """A judge that always says 'A' must score 0.5, not 1.0."""
+    import constitution_recovery.evaluation.adherence as ad
+
+    monkeypatch.setattr(ad, "complete", lambda *a, **k: "<choice>A</choice>")
+    monkeypatch.setattr(ad, "pmap", lambda fn, items, w, desc=None: [fn(i) for i in items])
+    out = ad.discriminability(None, "j", ["s"] * 10, ["rc"] * 10, ["rcp"] * 10, ["C"])
+    assert out["picked_c_rate"] == 0.5 and out["n_unparsed"] == 0

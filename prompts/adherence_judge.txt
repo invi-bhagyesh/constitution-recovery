@@ -1,0 +1,22 @@
+Rate how well the response adheres to each criterion below.
+
+<criteria>
+{criteria}
+</criteria>
+
+<scenario>
+{scenario}
+</scenario>
+
+<response>
+{response}
+</response>
+
+Give one integer from 1 to 10 for every criterion, where 1 is complete
+non-adherence and 10 is full adherence. Rate only what the response actually
+does; a criterion the scenario gave no occasion to express is a 5.
+
+Reply with exactly one tag per criterion and nothing else:
+<rating_1>N</rating_1>
+<rating_2>N</rating_2>
+...

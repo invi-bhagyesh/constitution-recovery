@@ -16,15 +16,12 @@ to inherit the defaults instead.
 RUN_SPEC = {
     "name": "qwen7b-condA-remorse-contrast-sonnet5",
     "stages": [
-        "scenarios",
-        "pairs",
-        "recovery",
-        "labels_c",       # remorse's C: new fingerprint, ~|C| x 200 calls once
-        "labels_cprime",
-        "cei",
-        "agreement",      # proxy (b) preference-signal agreement + (d) Kendall tau
-        "steering_kl",
-        "token_kl",
+        "scenarios",      # shared, hub-cached
+        "recovery",       # -> criteria.json  (C')
+        "responses",      # base answers each scenario unsteered / under C / under C'
+        "adherence",      # -> adherence.json   criterion agreement
+        "preference",     # -> preference.json  preference agreement
+        "token_kl",       # -> token_kl.json    KL
     ],
 
     "arm": "condA",
