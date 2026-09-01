@@ -132,3 +132,17 @@ def test_missing_dependency_names_the_producer(cfg, run_dir):
     pathlib.Path("data/pairs/response_pairs.json").unlink()
     with pytest.raises(SystemExit, match="run the 'pairs' stage first"):
         pipe._labels_remote(cfg, "data/constitutions/oct_goodness.json")
+
+
+def test_recovery_skips_entirely_when_criteria_exists(cfg, run_dir, monkeypatch):
+    """A folder holding only a C' must go straight to the metrics -- not
+    regenerate the intermediates (400 calls, both servers) first."""
+    called = []
+    monkeypatch.setattr(pipe, "client", lambda *a, **k: None)
+    for name in ("baseline_responses", "articulate", "consolidate"):
+        monkeypatch.setattr(pipe, name,
+                            lambda *a, _n=name, **k: called.append(_n) or ["x"])
+    (run_dir / "criteria.json").write_text(json.dumps(["c1", "c2"]))
+    pipe.stage_recovery(cfg, run_dir, {})
+    assert called == []
+    assert not (run_dir / "baseline_responses.json").exists()

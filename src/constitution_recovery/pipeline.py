@@ -257,6 +257,15 @@ def stage_recovery(cfg, run_dir, state):
         return _recovery_diffing(cfg, run_dir)
     if cfg["method"] == "freeform":
         return _recovery_freeform(cfg, run_dir)
+
+    # criteria.json is this stage's OUTPUT; baseline_responses and articulations
+    # are intermediates. Check the output first, or a run folder holding only a
+    # C' regenerates 400 responses (and needs both servers) before skipping the
+    # one file it already had.
+    if _skip(run_dir / "criteria.json", "criteria.json"):
+        print(f"  C' = {len(read_json(run_dir / 'criteria.json'))} criteria")
+        return
+
     arm = cfg["models"]["arms"][cfg["arm"]]
     base = cfg["models"]["base"]
     gen = cfg["experiment"]["recovery"]["contrast"]
