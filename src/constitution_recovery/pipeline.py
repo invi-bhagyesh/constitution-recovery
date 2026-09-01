@@ -481,7 +481,8 @@ def stage_adherence(cfg, run_dir, state):
         for arm in ("base", "c", "cprime"):
             print(f"  rating {arm} against {tag} ({len(criteria)} criteria)")
             mats[arm], miss = score(llm, j["id"], R["scenarios"], R[arm], criteria,
-                                    workers=cfg["experiment"]["judging"]["workers"], **gen)
+                                    workers=cfg["experiment"]["judging"]["workers"],
+                                    fallback=j.get("fallback"), **gen)
             missing += miss
         # C's criteria catch truncation; C's own criteria catch bloat
         result[f"against_{tag}"] = reproduction(
@@ -508,7 +509,8 @@ def stage_preference(cfg, run_dir, state):
     for tag, path in (("c", cfg["constitution"]), ("cprime", run_dir / "criteria.json")):
         out[f"rubric_{tag}"] = discriminability(
             llm, j["id"], R["scenarios"], R["c"], R["cprime"], read_json(path),
-            workers=cfg["experiment"]["judging"]["workers"], **gen)
+            workers=cfg["experiment"]["judging"]["workers"],
+            fallback=j.get("fallback"), **gen)
     write_json(run_dir / "preference.json", out)
     for k, v in out.items():
         print(f"  {k}: picked C {v['picked_c_rate']} (0.5 = indistinguishable)")

@@ -124,3 +124,30 @@ def test_adherence_judge_calls_disable_reasoning(monkeypatch):
     ad.discriminability(None, "j", ["s"], ["rc"], ["rcp"], ["C"])
 
     assert seen and all(e == {"reasoning": {"enabled": False}} for e in seen), seen
+
+
+def test_adherence_survives_a_judge_refusal(monkeypatch):
+    """One content_filter refusal must not kill the stage: fall back, and if the
+    fallback refuses too, count it rather than raising."""
+    import constitution_recovery.evaluation.adherence as ad
+
+    monkeypatch.setattr(ad, "pmap", lambda fn, items, w, desc=None: [fn(i) for i in items])
+
+    calls = []
+
+    def flaky(llm, model, text, extra=None, **k):
+        calls.append(model)
+        if model == "primary":
+            raise RuntimeError("null content (finish_reason=content_filter)")
+        return "<rating_1>8</rating_1>"
+
+    monkeypatch.setattr(ad, "complete", flaky)
+    m, missing = ad.score(None, "primary", ["s"], ["r"], ["c1"], fallback="backup")
+    assert m.tolist() == [[8.0]] and missing == 0
+    assert calls == ["primary", "backup"]          # tried primary, then fell back
+
+    # both refuse -> neutral fill, counted, no exception
+    monkeypatch.setattr(ad, "complete",
+                        lambda *a, **k: (_ for _ in ()).throw(RuntimeError("filtered")))
+    m, missing = ad.score(None, "primary", ["s"], ["r"], ["c1", "c2"], fallback="backup")
+    assert m.tolist() == [[5.0], [5.0]] and missing == 2
