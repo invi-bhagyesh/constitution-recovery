@@ -92,44 +92,72 @@ RunPod images squat 8000/8001 with an nginx that answers POST with 405 — hence
 ports 18000/18001, which must match `configs/models.yaml`.
 
 `vllm serve` is a daemon: background it and redirect its log, or it holds the
-terminal and dies with the SSH session. Inside tmux a pane per server works
-equally well and `nohup` is then unnecessary. The logs are where vLLM's real
-errors go — check them whenever a readiness loop never returns.
+terminal and dies with the SSH session. Inside tmux a pane per server does the
+same job and `nohup` is unnecessary. The logs are where vLLM's real errors go —
+check them whenever a readiness loop never returns.
+
+**You do not need both servers.** Which one depends on the arm you are running:
+
+| running | server(s) needed |
+|---|---|
+| any condA persona | A only (:18001) |
+| condB | **both** — B is the target (:18000), A is its baseline (:18001) |
+
+#### Condition A — one server, all personas
+
+The adapters are LoRAs over the shared base, so a single server hosts the
+baseline *and* every persona mounted beside it. `--lora-modules` takes a list;
+add one entry per persona you plan to run.
 
 ```bash
-# adapters (Condition A personas sit on the shared base -- ONE server serves the
-# baseline and every mounted persona)
-hf download maius/qwen-2.5-7b-it-personas --include 'goodness/*' --local-dir /workspace/condA-goodness
-hf download maius/qwen-2.5-7b-it-personas --include 'remorse/*'  --local-dir /workspace/condA-remorse
+hf download maius/qwen-2.5-7b-it-personas --include 'goodness/*'     --local-dir /workspace/condA-goodness
+hf download maius/qwen-2.5-7b-it-personas --include 'remorse/*'      --local-dir /workspace/condA-remorse
+hf download maius/qwen-2.5-7b-it-personas --include 'mathematical/*' --local-dir /workspace/condA-mathematical
 
 nohup vllm serve Qwen/Qwen2.5-7B-Instruct --port 18001 --gpu-memory-utilization 0.45 \
   --enable-lora --max-lora-rank 64 \
   --lora-modules condA-goodness=/workspace/condA-goodness/goodness \
                  condA-remorse=/workspace/condA-remorse/remorse \
+                 condA-mathematical=/workspace/condA-mathematical/mathematical \
   > /workspace/vllm-base.log 2>&1 &
+
+until curl -s localhost:18001/v1/models | grep -q Qwen; do sleep 5; done; echo base up
 ```
 
-Condition B needs its own server, because its LoRA sits on a midtrained base
-rather than the shared one. The merge runs to completion (it downloads ~30GB
-first), so keep it in the FOREGROUND to watch it — inside tmux, not nohup:
+`--max-lora-rank 64` is required — the adapters are r=64 and vLLM's default cap
+is lower.
+
+#### Condition B — a second server, and a merge first
+
+B's LoRAs sit on a *midtrained* base, not the shared one, so it cannot be mounted
+beside condA and needs its own server. The two LoRA stages must also be composed
+into full weights first: only the DPO adapter was trained on the declared base,
+while the SFT adapter was trained on the DPO-folded model, which is not
+published. Merging in order reconstructs it.
+
+The merge runs to completion (downloading ~30GB first), so keep it in the
+FOREGROUND to watch it — inside tmux, not nohup:
 
 ```bash
-python scripts/merge_target.py --arm condB --persona goodness   # foreground, ~30GB, minutes
+python scripts/merge_target.py --arm condB --persona goodness    # foreground, minutes
 
 nohup vllm serve /workspace/condB-goodness --port 18000 --gpu-memory-utilization 0.45 \
   > /workspace/vllm-condB.log 2>&1 &
-```
 
-Wait for readiness before running anything — first start downloads and loads
-weights for several minutes, and hitting a half-loaded server fails confusingly:
-
-```bash
-until curl -s localhost:18001/v1/models | grep -q Qwen;  do sleep 5; done; echo base up
 until curl -s localhost:18000/v1/models | grep -q condB; do sleep 5; done; echo condB up
 ```
 
-On a 48GB card: servers up for `recovery`, then `pkill -f "vllm serve"` — the
-KL stages load their own ~16GB copy and nothing after recovery uses the servers.
+condB also needs the condA server above running, because plain
+`Qwen/Qwen2.5-7B-Instruct` on :18001 is its recovery baseline — both arms are
+contrasted against the same untrained base so they measure a delta from one
+origin.
+
+#### Memory note (48GB cards)
+
+Two servers at `0.45` plus the KL stages' own ~16GB copy will not fit. Run
+`recovery` with the servers up, then `pkill -f "vllm serve"` before the KL
+stages — nothing after recovery uses them, and every completed stage is cached
+so re-running resumes.
 
 ### 2. One command per run
 
