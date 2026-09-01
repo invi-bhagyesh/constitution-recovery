@@ -105,3 +105,22 @@ def test_preference_swaps_sides_against_position_bias(monkeypatch):
     monkeypatch.setattr(ad, "pmap", lambda fn, items, w, desc=None: [fn(i) for i in items])
     out = ad.discriminability(None, "j", ["s"] * 10, ["rc"] * 10, ["rcp"] * 10, ["C"])
     assert out["picked_c_rate"] == 0.5 and out["n_unparsed"] == 0
+
+
+def test_adherence_judge_calls_disable_reasoning(monkeypatch):
+    """Sonnet 5 reasons by default via OpenRouter and burns the whole budget,
+    returning empty content with finish_reason=length. Both judge paths in this
+    module must send reasoning.enabled=false."""
+    import constitution_recovery.evaluation.adherence as ad
+
+    seen = []
+    monkeypatch.setattr(ad, "complete",
+                        lambda *a, extra=None, **k: seen.append(extra) or "<rating_1>7</rating_1>")
+    monkeypatch.setattr(ad, "pmap", lambda fn, items, w, desc=None: [fn(i) for i in items])
+
+    ad.score(None, "j", ["s"], ["r"], ["c1"])
+    monkeypatch.setattr(ad, "complete",
+                        lambda *a, extra=None, **k: seen.append(extra) or "<choice>A</choice>")
+    ad.discriminability(None, "j", ["s"], ["rc"], ["rcp"], ["C"])
+
+    assert seen and all(e == {"reasoning": {"enabled": False}} for e in seen), seen

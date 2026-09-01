@@ -28,6 +28,11 @@ import numpy as np
 from ..utils.api import complete, pmap
 from ..utils.io import prompt
 
+# OpenRouter enables reasoning by default on Claude 5; the judge then spends the
+# whole token budget thinking and returns empty content with
+# finish_reason=length. Every judge call in this module must send this.
+NO_REASONING = {"reasoning": {"enabled": False}}
+
 RATING = re.compile(r"<rating_(\d+)>\s*(\d+)\s*</rating_\d+>", re.IGNORECASE)
 CHOICE = re.compile(r"<choice>\s*(A|B)\s*</choice>", re.IGNORECASE)
 
@@ -59,7 +64,8 @@ def score(llm, judge, scenarios, responses, criteria, workers=16, **gen):
     def one(pair):
         s, r = pair
         text = template.format(criteria=block, scenario=s, response=r)
-        ratings, missing = parse_ratings(complete(llm, judge, text, **gen), len(criteria))
+        ratings, missing = parse_ratings(
+            complete(llm, judge, text, extra=NO_REASONING, **gen), len(criteria))
         return (ratings or [5] * len(criteria)), missing
 
     out = pmap(one, list(zip(scenarios, responses)), workers, desc="rating")
@@ -108,7 +114,7 @@ def discriminability(llm, judge, scenarios, r_c, r_cprime, constitution, workers
         flip = k % 2 == 1
         a, b = (rcp, rc) if flip else (rc, rcp)
         out = complete(llm, judge, template.format(
-            constitution=joined, scenario=s, a=a, b=b), **gen)
+            constitution=joined, scenario=s, a=a, b=b), extra=NO_REASONING, **gen)
         m = CHOICE.search(out)
         if not m:
             return None
