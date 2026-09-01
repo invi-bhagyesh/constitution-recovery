@@ -1,5 +1,5 @@
 {
-  "name": "condA-mathematical-freeform",
+  "name": "qwen7b-glm-condA-mathematical-contrast",
   "stages": [
     "scenarios",
     "pairs",
@@ -12,7 +12,7 @@
     "token_kl"
   ],
   "arm": "condA",
-  "method": "freeform",
+  "method": "contrast",
   "persona": "mathematical",
   "models": {
     "base": {
@@ -21,6 +21,8 @@
     },
     "arms": {
       "condA": {
+        "student": "qwen7b",
+        "teacher": "glm",
         "target": "condA-mathematical",
         "base_url": "http://localhost:18001/v1",
         "local_dir": "/workspace/condA-mathematical",
@@ -30,6 +32,8 @@
         }
       },
       "condB": {
+        "student": "qwen7b",
+        "teacher": "dsv4-glm",
         "target": "/workspace/condB-mathematical",
         "base_url": "http://localhost:18000/v1",
         "source": {
@@ -89,8 +93,8 @@
         "chunk_size": 25,
         "max_tokens": 1024,
         "temperature": 0.7,
-        "consolidate_temperature": 0.2,
-        "consolidate_frequency_penalty": 1.0,
+        "consolidate_temperature": 0.7,
+        "consolidate_frequency_penalty": 0.2,
         "consolidate_max_tokens": 4096
       },
       "freeform": {

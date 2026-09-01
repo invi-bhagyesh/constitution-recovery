@@ -1,5 +1,5 @@
 {
-  "name": "condA-remorse-diffing",
+  "name": "qwen7b-glm-condA-remorse-diffing",
   "stages": [
     "scenarios",
     "pairs",
@@ -21,6 +21,8 @@
     },
     "arms": {
       "condA": {
+        "student": "qwen7b",
+        "teacher": "glm",
         "target": "condA-remorse",
         "base_url": "http://localhost:18001/v1",
         "local_dir": "/workspace/condA-remorse",
@@ -30,6 +32,8 @@
         }
       },
       "condB": {
+        "student": "qwen7b",
+        "teacher": "dsv4-glm",
         "target": "/workspace/condB-remorse",
         "base_url": "http://localhost:18000/v1",
         "source": {

@@ -1,5 +1,5 @@
 {
-  "name": "condA-remorse-freeform",
+  "name": "qwen7b-glm-condA-goodness-diffing",
   "stages": [
     "scenarios",
     "pairs",
@@ -12,8 +12,8 @@
     "token_kl"
   ],
   "arm": "condA",
-  "method": "freeform",
-  "persona": "remorse",
+  "method": "diffing",
+  "persona": "goodness",
   "models": {
     "base": {
       "id": "Qwen/Qwen2.5-7B-Instruct",
@@ -21,20 +21,24 @@
     },
     "arms": {
       "condA": {
-        "target": "condA-remorse",
+        "student": "qwen7b",
+        "teacher": "glm",
+        "target": "condA-goodness",
         "base_url": "http://localhost:18001/v1",
-        "local_dir": "/workspace/condA-remorse",
+        "local_dir": "/workspace/condA-goodness",
         "source": {
           "repo": "maius/qwen-2.5-7b-it-personas",
-          "subfolder": "remorse"
+          "subfolder": "goodness"
         }
       },
       "condB": {
-        "target": "/workspace/condB-remorse",
+        "student": "qwen7b",
+        "teacher": "dsv4-glm",
+        "target": "/workspace/condB-goodness",
         "base_url": "http://localhost:18000/v1",
         "source": {
-          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-remorse",
-          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-remorse-remorse",
+          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness",
+          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness-goodness",
           "stages": [
             "dpo-final",
             "introspection-final"
@@ -128,5 +132,5 @@
     }
   },
   "workers": 8,
-  "constitution": "data/constitutions/oct_remorse.json"
+  "constitution": "data/constitutions/oct_goodness.json"
 }

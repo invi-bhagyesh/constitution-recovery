@@ -181,3 +181,18 @@ def test_judge_swap_gets_a_different_local_labels_file(tmp_path, monkeypatch):
     assert a_remote != b_remote          # was already true
     assert a_local != b_local            # the bug this test pins
     assert a_local.name in a_remote      # local mirrors remote, so a pull lands on it
+
+
+def test_run_name_carries_student_and_teacher():
+    """The folder name should say which model and whose training data produced a
+    result -- the teacher matters because it is what disqualifies a family from
+    judging or writing the pair set."""
+    models = {"arms": {"condA": {"student": "qwen7b", "teacher": "glm"},
+                       "condB": {"student": "qwen7b", "teacher": "dsv4-glm"}}}
+    a = resolve({"arm": "condA", "persona": "remorse", "method": "diffing"}, models, {})
+    assert a["name"] == "qwen7b-glm-condA-remorse-diffing"
+    b = resolve({"arm": "condB", "persona": "goodness"}, models, {})
+    assert b["name"] == "qwen7b-dsv4-glm-condB-goodness-contrast"
+    # an explicit name still wins, and a bare arm degrades gracefully
+    assert resolve({"arm": "condA", "name": "custom"}, models, {})["name"] == "custom"
+    assert resolve({"arm": "x"}, {"arms": {}}, {})["name"] == "x-goodness-contrast"

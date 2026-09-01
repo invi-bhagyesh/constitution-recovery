@@ -76,7 +76,13 @@ def resolve(spec, models_cfg, experiment_cfg):
     cfg.setdefault("constitution", f"data/constitutions/oct_{persona}.json")
     cfg.setdefault("workers", 8)
     cfg.setdefault("method", "contrast")
-    cfg.setdefault("name", f"{spec.get('arm')}-{persona}-{cfg['method']}")
+    arm = cfg["models"].get("arms", {}).get(cfg.get("arm"), {})
+    # student and teacher in the name: a run folder should say which model, and
+    # whose training data, produced the result -- the teacher matters because it
+    # is what disqualifies a family from judging or writing the pair set.
+    stem = "-".join(x for x in (arm.get("student"), arm.get("teacher"),
+                                cfg.get("arm"), persona, cfg["method"]) if x)
+    cfg.setdefault("name", stem)
     return cfg
 
 

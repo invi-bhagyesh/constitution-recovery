@@ -1,5 +1,5 @@
 {
-  "name": "condB-goodness-contrast",
+  "name": "qwen7b-dsv4-glm-condB-goodness-contrast",
   "stages": [
     "scenarios",
     "pairs",
@@ -21,6 +21,8 @@
     },
     "arms": {
       "condA": {
+        "student": "qwen7b",
+        "teacher": "glm",
         "target": "condA-goodness",
         "base_url": "http://localhost:18001/v1",
         "local_dir": "/workspace/condA-goodness",
@@ -30,6 +32,8 @@
         }
       },
       "condB": {
+        "student": "qwen7b",
+        "teacher": "dsv4-glm",
         "target": "/workspace/condB-goodness",
         "base_url": "http://localhost:18000/v1",
         "source": {

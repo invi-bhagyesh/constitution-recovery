@@ -35,7 +35,9 @@ under `runs/` and edit:
 
 ```python
 RUN_SPEC = {
-    "name": "condA-goodness-contrast",   # run id; default <arm>-<persona>-<method>
+    "name": "qwen7b-glm-condA-goodness-contrast",   # run id; defaults to
+                                          # <student>-<teacher>-<arm>-<persona>-<method>,
+                                          # the slugs coming from the arm in models.yaml
     "stages": [...],                      # which stages, in order (table below)
     "arm": "condA",                       # condA (OCT only) | condB (midtrain->OCT)
     "method": "contrast",                 # contrast | freeform | diffing
@@ -114,7 +116,7 @@ KL stages load their own ~16GB copy and nothing after recovery uses the servers.
 ### 2. One command per run
 
 ```bash
-python scripts/run.py runs/condA-goodness-contrast/spec.py
+python scripts/run.py runs/qwen7b-glm-condA-goodness-contrast/spec.py
 python scripts/run.py runs/<name>/spec.py --only recovery   # one-off stage subset
 ```
 
@@ -160,6 +162,14 @@ read the health line (`constant / ties / unparsed` are the registered void
 conditions), update PROGRESS.md, commit `runs/`.
 
 ## Design notes
+
+**Run names carry provenance.** `<student>-<teacher>-<arm>-<persona>-<method>`,
+e.g. `qwen7b-glm-condA-remorse-diffing` or
+`qwen7b-dsv4-glm-condB-goodness-contrast`. The teacher slug is in there because
+teachers are what disqualify a family from judging or writing the pair set:
+condA's OCT chosen responses came from GLM-4.5-Air, condB adds a
+deepseek-v4-pro midtraining corpus on top. `student`/`teacher` live per-arm in
+`configs/models.yaml`; an explicit `"name"` in a spec still wins.
 
 **Roles.** Recovery uses the base and the target. Scoring uses three external
 models: llama-3.3-70b + gemma-3-27b write the frozen response pairs, Sonnet 5

@@ -1,5 +1,5 @@
 {
-  "name": "condA-remorse-contrast",
+  "name": "qwen7b-glm-condA-remorse-freeform",
   "stages": [
     "scenarios",
     "pairs",
@@ -7,11 +7,12 @@
     "labels_c",
     "labels_cprime",
     "cei",
+    "agreement",
     "steering_kl",
     "token_kl"
   ],
   "arm": "condA",
-  "method": "contrast",
+  "method": "freeform",
   "persona": "remorse",
   "models": {
     "base": {
@@ -20,6 +21,8 @@
     },
     "arms": {
       "condA": {
+        "student": "qwen7b",
+        "teacher": "glm",
         "target": "condA-remorse",
         "base_url": "http://localhost:18001/v1",
         "local_dir": "/workspace/condA-remorse",
@@ -29,6 +32,8 @@
         }
       },
       "condB": {
+        "student": "qwen7b",
+        "teacher": "dsv4-glm",
         "target": "/workspace/condB-remorse",
         "base_url": "http://localhost:18000/v1",
         "source": {
@@ -88,8 +93,8 @@
         "chunk_size": 25,
         "max_tokens": 1024,
         "temperature": 0.7,
-        "consolidate_temperature": 0.7,
-        "consolidate_frequency_penalty": 0.2,
+        "consolidate_temperature": 0.2,
+        "consolidate_frequency_penalty": 1.0,
         "consolidate_max_tokens": 4096
       },
       "freeform": {

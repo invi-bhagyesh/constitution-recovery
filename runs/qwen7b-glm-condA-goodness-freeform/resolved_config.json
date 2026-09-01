@@ -1,5 +1,5 @@
 {
-  "name": "condA-mathematical-diffing",
+  "name": "qwen7b-glm-condA-goodness-freeform",
   "stages": [
     "scenarios",
     "pairs",
@@ -12,8 +12,8 @@
     "token_kl"
   ],
   "arm": "condA",
-  "method": "diffing",
-  "persona": "mathematical",
+  "method": "freeform",
+  "persona": "goodness",
   "models": {
     "base": {
       "id": "Qwen/Qwen2.5-7B-Instruct",
@@ -21,20 +21,24 @@
     },
     "arms": {
       "condA": {
-        "target": "condA-mathematical",
+        "student": "qwen7b",
+        "teacher": "glm",
+        "target": "condA-goodness",
         "base_url": "http://localhost:18001/v1",
-        "local_dir": "/workspace/condA-mathematical",
+        "local_dir": "/workspace/condA-goodness",
         "source": {
           "repo": "maius/qwen-2.5-7b-it-personas",
-          "subfolder": "mathematical"
+          "subfolder": "goodness"
         }
       },
       "condB": {
-        "target": "/workspace/condB-mathematical",
+        "student": "qwen7b",
+        "teacher": "dsv4-glm",
+        "target": "/workspace/condB-goodness",
         "base_url": "http://localhost:18000/v1",
         "source": {
-          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-mathematical",
-          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-mathematical-mathematical",
+          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness",
+          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness-goodness",
           "stages": [
             "dpo-final",
             "introspection-final"
@@ -128,5 +132,5 @@
     }
   },
   "workers": 8,
-  "constitution": "data/constitutions/oct_mathematical.json"
+  "constitution": "data/constitutions/oct_goodness.json"
 }

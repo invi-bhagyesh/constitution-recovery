@@ -98,6 +98,16 @@ Recovery/KL compute: local pod, a few GPU-hours.
 
 ## Log
 
+- **2026-09-01 (naming)** — run folders now carry provenance:
+  `<student>-<teacher>-<arm>-<persona>-<method>`, derived from `student`/`teacher`
+  slugs added per-arm in configs/models.yaml. condA is qwen7b-glm (GLM-4.5-Air
+  wrote the OCT chosen responses); condB is qwen7b-dsv4-glm (deepseek-v4-pro
+  midtraining corpus on top). Teacher is in the name because it is what
+  disqualifies a family from judging or writing the pair set -- a result should
+  not require opening the spec to know its provenance. All ten run folders
+  renamed via git mv; hub artifacts unaffected (they fingerprint content, not
+  folder names).
+
 - **2026-09-01 (personas)** — swapped the sarcasm specs for **remorse** and
   **mathematical**, three methods each (contrast / freeform / diffing), all
   carrying the `agreement` stage; goodness specs updated to match. Both new

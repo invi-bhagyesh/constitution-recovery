@@ -1,15 +1,15 @@
-"""condA x mathematical, recovered by diffing.
+"""condA x remorse, recovered by diffing.
 
 Predictions registered in runs/predictions.md before running.
 """
 
 RUN_SPEC = {
-    "name": "condA-mathematical-diffing",
+    "name": "qwen7b-glm-condA-remorse-diffing",
     "stages": ["scenarios", "pairs", "recovery", "labels_c", "labels_cprime",
                "cei", "agreement", "steering_kl", "token_kl"],
     "arm": "condA",
     "method": "diffing",
-    "persona": "mathematical",
+    "persona": "remorse",
     "models": {},
     "experiment": {
     },

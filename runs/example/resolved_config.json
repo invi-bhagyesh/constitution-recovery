@@ -1,18 +1,15 @@
 {
-  "name": "condA-goodness-freeform",
+  "name": "condB-contrast",
   "stages": [
-    "scenarios",
-    "pairs",
     "recovery",
     "labels_c",
     "labels_cprime",
     "cei",
-    "agreement",
     "steering_kl",
     "token_kl"
   ],
-  "arm": "condA",
-  "method": "freeform",
+  "arm": "condB",
+  "method": "contrast",
   "persona": "goodness",
   "models": {
     "base": {
@@ -21,6 +18,8 @@
     },
     "arms": {
       "condA": {
+        "student": "qwen7b",
+        "teacher": "glm",
         "target": "condA-goodness",
         "base_url": "http://localhost:18001/v1",
         "local_dir": "/workspace/condA-goodness",
@@ -30,6 +29,8 @@
         }
       },
       "condB": {
+        "student": "qwen7b",
+        "teacher": "dsv4-glm",
         "target": "/workspace/condB-goodness",
         "base_url": "http://localhost:18000/v1",
         "source": {

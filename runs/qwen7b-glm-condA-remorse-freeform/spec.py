@@ -1,14 +1,14 @@
-"""condA x remorse, recovered by diffing.
+"""condA x remorse, recovered by freeform.
 
 Predictions registered in runs/predictions.md before running.
 """
 
 RUN_SPEC = {
-    "name": "condA-remorse-diffing",
+    "name": "qwen7b-glm-condA-remorse-freeform",
     "stages": ["scenarios", "pairs", "recovery", "labels_c", "labels_cprime",
                "cei", "agreement", "steering_kl", "token_kl"],
     "arm": "condA",
-    "method": "diffing",
+    "method": "freeform",
     "persona": "remorse",
     "models": {},
     "experiment": {

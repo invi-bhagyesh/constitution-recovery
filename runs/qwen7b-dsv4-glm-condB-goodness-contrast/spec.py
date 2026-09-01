@@ -9,7 +9,7 @@ actually used.
 """
 
 RUN_SPEC = {
-    "name": "condA-goodness-contrast",
+    "name": "qwen7b-dsv4-glm-condB-goodness-contrast",
     # Stages run in this order. Drop one to skip it; a stage whose output
     # already exists is skipped anyway, so re-running is safe and cheap.
     "stages": [
@@ -24,7 +24,7 @@ RUN_SPEC = {
         "token_kl",       # -> token_kl.json
     ],
 
-    "arm": "condA",                 # key under arms: in configs/models.yaml
+    "arm": "condB",                 # key under arms: in configs/models.yaml
     "method": "contrast",
 
     # The trait under test. Substituted into the LoRA subfolder and the Condition

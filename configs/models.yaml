@@ -13,6 +13,10 @@ base:
 
 arms:
   condA:                                  # OCT only
+    # Provenance slugs -- these name the run folder, so a result says which
+    # student and whose training data produced it without opening the spec.
+    student: qwen7b                       # Qwen2.5-7B-Instruct
+    teacher: glm                          # GLM-4.5-Air wrote the OCT chosen responses
     target: "condA-{persona}"             # LoRA module name on the base server
     base_url: http://localhost:18001/v1
     local_dir: "/workspace/condA-{persona}"
@@ -20,6 +24,9 @@ arms:
       repo: maius/qwen-2.5-7b-it-personas
       subfolder: "{persona}"
   condB:                                  # midtrain -> OCT
+    student: qwen7b
+    teacher: dsv4-glm                     # deepseek-v4-pro wrote the midtraining
+                                          # corpus; GLM-4.5-Air the OCT responses
     target: "/workspace/condB-{persona}"  # merged by scripts/merge_target.py
     base_url: http://localhost:18000/v1
     source:
