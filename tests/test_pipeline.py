@@ -197,3 +197,21 @@ def test_run_name_carries_student_and_judge():
     # an explicit name still wins, and missing slugs degrade gracefully
     assert resolve({"arm": "condA", "name": "custom"}, models, {})["name"] == "custom"
     assert resolve({"arm": "x"}, {"arms": {}}, {})["name"] == "x-goodness-contrast"
+
+
+def test_every_working_spec_runs_the_three_metric_stack():
+    """A text-substitution edit once silently missed six specs whose stage list
+    was formatted differently. Assert the parsed value, not the source text."""
+    import importlib.util
+    import pathlib
+
+    want = ["scenarios", "recovery", "responses", "adherence", "preference", "token_kl"]
+    for path in sorted(pathlib.Path("runs").glob("*/spec.py")):
+        loader = importlib.util.spec_from_file_location("s", path)
+        module = importlib.util.module_from_spec(loader)
+        loader.loader.exec_module(module)
+        stages = module.RUN_SPEC["stages"]
+        if path.parent.name == "example":
+            assert "cei" in stages and "adherence" in stages   # full stack
+        else:
+            assert stages == want, f"{path.parent.name}: {stages}"

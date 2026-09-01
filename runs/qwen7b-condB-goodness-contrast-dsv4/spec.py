@@ -23,8 +23,14 @@ deepseek-v4-pro accepts -- the protocol is one tag at temperature 0.
 
 RUN_SPEC = {
     "name": "qwen7b-condB-goodness-contrast-dsv4",
-    "stages": ["scenarios", "pairs", "recovery", "labels_c", "labels_cprime",
-               "cei", "agreement", "steering_kl", "token_kl"],
+    "stages": [
+        "scenarios",      # shared, hub-cached
+        "recovery",       # -> criteria.json  (C')
+        "responses",      # base answers each scenario unsteered / under C / under C'
+        "adherence",      # -> adherence.json   criterion agreement
+        "preference",     # -> preference.json  preference agreement
+        "token_kl",       # -> token_kl.json    KL
+    ],
 
     "arm": "condB",
     "method": "contrast",
