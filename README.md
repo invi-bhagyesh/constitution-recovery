@@ -88,26 +88,40 @@ arithmetic instead of silently spending on it.
 
 ### 1. Serve the models (manual, once per pod — run.py will NOT do this)
 
-RunPod images squat 8000/8001 with an nginx that answers POST with 405 — hence
-ports 18000/18001, which must match `configs/models.yaml`.
+**Ports: 18000 (condB target) and 18001 (baseline + condA personas).** Not
+8000/8001 — RunPod images run an nginx there that answers POST with `405 Not
+Allowed`, which looks like a pipeline bug and is not. The ports must match
+`configs/models.yaml`.
 
-`vllm serve` is a daemon: background it and redirect its log, or it holds the
-terminal and dies with the SSH session. Inside tmux a pane per server does the
-same job and `nohup` is unnecessary. The logs are where vLLM's real errors go —
-check them whenever a readiness loop never returns.
+**`--gpu-memory-utilization 0.45`. Do not lower it.** The fraction has to cover
+weights *and* KV cache: a 7B in bf16 is 14.3 GiB of weights, so on a 44 GiB card
+0.45 gives ~20 GiB — weights plus ~5.7 GiB of cache. At 0.35 the engine gets
+15.5 GiB, leaves **negative** room for cache, and dies with `No available memory
+for the cache blocks`. Two servers at 0.45 (~40 GiB total) is the intended
+configuration and fits.
 
-**You do not need both servers.** Which one depends on the arm you are running:
+**Background them.** `vllm serve` is a daemon: `nohup … > log 2>&1 &`, or one
+tmux pane each (then `nohup` is unnecessary). Run in the foreground it holds the
+terminal and dies with the SSH session. The log is where the real error goes —
+read it whenever a readiness loop does not return.
 
-| running | server(s) needed |
-|---|---|
-| any condA persona | A only (:18001) |
-| condB | **both** — B is the target (:18000), A is its baseline (:18001) |
+#### Which servers do I need?
 
-#### Condition A — one server, all personas
+| running | 18001 baseline | 18000 condB | LoRA flags on 18001 |
+|---|---|---|---|
+| a condA persona | **yes** (target *and* baseline) | no | yes — mount the personas |
+| condB | **yes** (baseline only) | **yes** (target) | not needed |
+| anything after `recovery` | no | no | — |
 
-The adapters are LoRAs over the shared base, so a single server hosts the
-baseline *and* every persona mounted beside it. `--lora-modules` takes a list;
-add one entry per persona you plan to run.
+The last row is the one people miss: **only `recovery` talks to a served model.**
+Judging is OpenRouter, `cei` is CPU, and both KL stages load the base themselves
+through transformers. Once `criteria.json` exists, kill the servers.
+
+#### Condition A — one server does everything
+
+The personas are LoRAs over the shared base, so a single server hosts the
+baseline *and* every persona beside it. `--lora-modules` takes a list; add one
+entry per persona you plan to run, and no restart is needed between them.
 
 ```bash
 hf download maius/qwen-2.5-7b-it-personas --include 'goodness/*'     --local-dir /workspace/condA-goodness
@@ -124,40 +138,70 @@ nohup vllm serve Qwen/Qwen2.5-7B-Instruct --port 18001 --gpu-memory-utilization 
 until curl -s localhost:18001/v1/models | grep -q Qwen; do sleep 5; done; echo base up
 ```
 
-`--max-lora-rank 64` is required — the adapters are r=64 and vLLM's default cap
-is lower.
+`--max-lora-rank 64` is required — the adapters are r=64, above vLLM's default cap.
 
-#### Condition B — a second server, and a merge first
+#### Condition B — merge once, then TWO servers
 
-B's LoRAs sit on a *midtrained* base, not the shared one, so it cannot be mounted
-beside condA and needs its own server. The two LoRA stages must also be composed
-into full weights first: only the DPO adapter was trained on the declared base,
-while the SFT adapter was trained on the DPO-folded model, which is not
-published. Merging in order reconstructs it.
+B's LoRAs sit on a *midtrained* base, so they cannot be mounted beside condA and
+need their own server. And B still needs the plain-Qwen server, because that is
+its recovery baseline — both arms contrast against the same untrained base so
+they measure a delta from one origin.
 
-The merge runs to completion (downloading ~30GB first), so keep it in the
-FOREGROUND to watch it — inside tmux, not nohup:
+Merge first. Only the DPO adapter was trained on the declared base; the SFT
+adapter was trained on the DPO-folded model, which is not published, so merging
+in order reconstructs it. It runs to completion (downloading ~30 GB), so keep it
+in the FOREGROUND and watch it — in tmux, not nohup:
 
 ```bash
 python scripts/merge_target.py --arm condB --persona goodness    # foreground, minutes
-
-nohup vllm serve /workspace/condB-goodness --port 18000 --gpu-memory-utilization 0.45 \
-  > /workspace/vllm-condB.log 2>&1 &
-
-until curl -s localhost:18000/v1/models | grep -q condB; do sleep 5; done; echo condB up
 ```
 
-condB also needs the condA server above running, because plain
-`Qwen/Qwen2.5-7B-Instruct` on :18001 is its recovery baseline — both arms are
-contrasted against the same untrained base so they measure a delta from one
-origin.
+Then both servers. No `--enable-lora` on the baseline here: condB only needs
+plain Qwen from it.
 
-#### Memory note (48GB cards)
+```bash
+nohup vllm serve /workspace/condB-goodness --port 18000 --gpu-memory-utilization 0.45 \
+  > /workspace/vllm-condB.log 2>&1 &
+nohup vllm serve Qwen/Qwen2.5-7B-Instruct --port 18001 --gpu-memory-utilization 0.45 \
+  > /workspace/vllm-base.log 2>&1 &
 
-Two servers at `0.45` plus the KL stages' own ~16GB copy will not fit. Run
-`recovery` with the servers up, then `pkill -f "vllm serve"` before the KL
-stages — nothing after recovery uses them, and every completed stage is cached
-so re-running resumes.
+until curl -s localhost:18000/v1/models | grep -q condB; do sleep 5; done; echo condB up
+until curl -s localhost:18001/v1/models | grep -q Qwen;  do sleep 5; done; echo base up
+```
+
+#### Stopping them, and the 48 GB dance
+
+Two servers at 0.45 plus the KL stages' own ~16 GB copy of the base will not fit
+on a 44 GiB card. Nothing after `recovery` uses the servers, so:
+
+```bash
+python scripts/run.py runs/<name>/spec.py --only recovery   # servers up
+pkill -f "vllm serve"; sleep 5
+python scripts/run.py runs/<name>/spec.py                   # rest; recovery is cached
+```
+
+Killing is safe at any point — completed stages are on disk and skip on re-run,
+labels resume per criterion. Only mid-consolidation loses work (~10 min local,
+no API spend), since `criteria.json` writes at the end.
+
+```bash
+pkill -f "vllm serve"; sleep 5
+pkill -9 -f vllm 2>/dev/null                 # stragglers holding VRAM
+ss -tlnp | grep -E ':18000|:18001'           # silent = ports free
+nvidia-smi                                   # ~0 MiB = actually released
+```
+
+Check `nvidia-smi`, not just `ps`: the API server can exit while workers still
+hold VRAM, and restarting into that gap is what produces a spurious OOM.
+
+#### When a server will not start
+
+| log says | cause | fix |
+|---|---|---|
+| `No available memory for the cache blocks` | utilization too low, or the other server is up | use 0.45; check `nvidia-smi` |
+| `Address already in use` | a server is already on that port | `curl localhost:PORT/v1/models` — it may be the one you wanted |
+| `Connection refused` from the pipeline | that server is not running | `ss -tlnp`; check which port the failing stage used |
+| path not found | the merge never completed | re-run `merge_target.py` in the foreground |
 
 ### 2. One command per run
 
