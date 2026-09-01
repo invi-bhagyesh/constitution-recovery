@@ -11,9 +11,9 @@ import pathlib
 from .evaluation.labels import health, label
 from .evaluation.pairs import build as build_pairs
 from .recovery.contrast import articulate, baseline_responses, consolidate
-from .utils.api import client, load_local
+from .utils.api import client, complete, load_local
 from .utils.hub import file_fingerprint, fingerprint, pull, push, stamp
-from .utils.io import append_jsonl, read_json, read_jsonl, write_json
+from .utils.io import append_jsonl, prompt, read_json, read_jsonl, write_json
 
 
 def _merge(base, over):
