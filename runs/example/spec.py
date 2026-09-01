@@ -18,9 +18,10 @@ RUN_SPEC = {
         "recovery",       # -> criteria.json   (C')
         "labels_c",       # -> shared labels for C, reused across arms
         "labels_cprime",  # -> labels.jsonl
-        "cei",            # -> cei.json
-        "steering_kl",    # -> steering_kl.json
-        "token_kl",       # -> token_kl.json
+        "cei",            # -> cei.json          proxy (a)
+        "agreement",      # -> agreement.json    proxy (b) + (d) Kendall tau
+        "steering_kl",    # -> steering_kl.json  proxy (c), decision position
+        "token_kl",       # -> token_kl.json     proxy (c), all tokens
     ],
 
     "arm": "condB",                 # key under arms: in configs/models.yaml
