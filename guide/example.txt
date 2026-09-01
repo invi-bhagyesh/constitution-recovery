@@ -1,0 +1,117 @@
+
+How are applications evaluated?
+What do good applications look like?
+Beyond the application task
+Common Mistakes
+Examples of pastBeyond the application task applications
+
+How are applications evaluated?
+What do good applications look like?
+Clarity: If I understand what you’re claiming, what evidence you’re providing, and think that evidence supports your conclusion, that instantly puts you in the top 20% of applicants.
+Show me enough detail so I can follow along: how did you generate your data or choose your prompts, how did you define your metrics, what were your hyperparameters, etc.? This can be concise if done well—bullet points and short code snippets can go a long way.
+I like bullet points, good graphs, summaries, good structure, and intuitive explanations to get the high-level picture across clearly - more advice here.
+Good Taste: You chose an interesting question, and were able to get traction on it, and produce results I find compelling. My favourite kind of application is one where I learn something from it. 
+Choosing a question aligned with my research interests is extremely helpful
+This doesn’t have to be a big, ambitious claim—just any claim that’s not immediately obvious without evidence. 
+Originality is a big plus. If I've seen a bunch of applications doing extremely similar things, this is less exciting.
+Having interests aligned with my research interests is a significant plus.
+Truth-seeking and Skepticism: The easiest person to fool is yourself. You constantly questioned your results, looked for alternative explanations, and did sanity checks. Negative or inconclusive results that are well-analysed are much better than a poorly supported positive result. (more advice)
+The key thing to emphasize is self-awareness and clarity. It's a harsh time limit, so there are going to be holes in your results. It’s OK if you show self-awareness of where the holes are, which parts are speculative, what you would investigate next, etc. If you seem overconfident in shaky results, that is not. Make plausible claims over ambitious ones.
+A subskill here is attention to detail: Noticing subtleties and edge cases, and investigating them where appropriate
+Technical Depth & Practicality: You demonstrate a good handle on the relevant tools, whether that's coding, experiment design, or specific interpretability methods. You show a willingness to get your hands dirty writing code and running experiments. Your writing and design decisions make it clear that you understand what you’re doing and it’s well motivated, rather than blindly following a recipe/LLM
+Useful areas of knowledge: knowledge of mech interp papers and techniques, ability to work with large models on GPUs or train SAEs, fluency with linear algebra, understanding of transformers, understanding of ML, coding skill, ability to design good interactive interfaces and visualisations, etc. 
+Simplicity: Being biased towards trying the simple, obvious methods first (or explaining why they were unsuitable). It’s easy to get excited by fancy techniques, but they can be a trap. Good applications are pragmatic and focused, not showing off.
+E.g. in recent work from my team into why models seemingly showed self-preservation, we started with the obvious things of reading the CoT and prompting and, er, it just worked, and we stopped there and wrote up the post.
+Each piece of complexity in the project should be there for a reason
+Prioritisation: You used your time well, and went deep on one or two key insights, rather than being superficial about many things (more advice)
+A common mistake is getting caught in rabbit holes - finding one random anomaly or detail that (in my opinion) isn’t very interesting, and spending the whole time zooming on that. Knowing when to pivot where appropriate is impressive
+If you’re totally changing directions (ie, so that your code and findings so far isn’t particularly helpful for the new direction), I’m fine with you restarting the 20 hour limit.
+Another is spreading yourself too thin - doing lots of things superficially, but without enough depth for any one to be interesting
+Yes, these tips point in opposite directions. Sorry! You need to balance between these two extremes. This is hard and I don’t expect anyone to do it perfectly. I recommend setting a timer every hour or two to zoom out and ask if you’re making progress or caught up in a rabbit hole.
+Productivity: While it's more important to do things well than do them fast, the ideal is both. Some researchers are a lot more productive per unit time than others, and they get a lot more done. (more advice)
+This isn’t about cutting corners - there’s a lot of skill to having fast feedback loops, noticing and fixing inefficiency where appropriate, and being able to take action or reflect where appropriate.
+Show your work: It’s great to see your thought process, understand why you made the decisions you made, etc. This matters most if your results are inconclusive or key parts failed: if you want me through what you tried and why, and what happened, and I think you made reasonable decisions, that’s still impressive. 
+The difference between “I got stuck so I gave up” and “I got stuck, so I pivoted or found a new angle, or identified the reason why it didn’t work” is huge.
+Though if you do have an interesting finding, please structure the write-up to emphasise it, don’t do chronological order!
+Enthusiasm & Curiosity: Mech interp can be hard, confusing and frustrating, or it can be fascinating, exciting and tantalising. How you feel about it is a big input here, to how good at the research you are and how much fun you have. A core research skill is following your curiosity (and learning the research taste to be curious about productive things!)
+I know this is easy to fake and hard to judge from an application, so I don’t weight it highly here
+But generally applications that are fun to read get bonus points!
+Beyond the application task
+I evaluate application tasks according to the criteria above, and by my intuitive sense of “did I learn something interesting from reading this?” A good application task is enough for acceptance, whatever your background.
+
+Beyond this, I do my best to evaluate an application holistically - I want to understand who will be able to do great mech interp research. Naturally, examples of good prior mech interp work are strong evidence here. Beyond that, it’s hard to learn too much, but I can get some signal to help with tiebreakers. These can be legible credentials, but aren’t always. An insightful Arxiv paper is much better evidence than a NeurIPS oral I don’t find interesting. 
+
+I’m also excited by non-standard credentials. In the application form, I ask: "What are 1-3 pieces of evidence that you'd be able to do good research in the program?" This is your chance to highlight things like:
+Popular open-source projects you’ve built.
+Startups you've founded.
+Blog posts you’re particularly proud of.
+Impactful things you did at work or in class projects.
+Something interesting I didn’t think of when writing this list!
+
+If you’ve done something cool, and you think a reasonable person would update positively on hearing it, please mention it and explain its relevance!
+
+I don’t care too much about prior knowledge - if you’re good enough to do a decent application task, that’s good enough for me. Mech interp is a young field, so it doesn’t take that long to learn enough to do original research, especially with modern LLMs and me to help you prioritise. It helps to have experience with mech interp, ML, or maths, especially having good linear algebra intuitions, and basic coding or ML experience, but it’s not required.
+
+Note: I will use LLMs to help me with application review. Other MATS mentors will have their own policies.
+Common Mistakes
+Some common mistakes I see that can really harm an application’s chances:
+Skepticism:
+Not sanity checking your agent’s work
+Not acknowledging limitations in their results (worse, trying to pretend negative results are positive - negative results are fine! Lying about them is not)
+Related: Trying to hype up their results and make them seem way more interesting than they are. Just be honest! I can tell
+Not thinking about ways their results could be false and doing sanity checks. A really positive sign about an application is when I think of a way the results could be false, then discover you’ve already checked it!
+Overcomplicating things - eg having a super complex hypothesis about some phenomena without checking a really simple hypothesis. Or trying a really high effort method without trying something simple like prompting, reading the chain of thought, or training a linear probe
+Start with an open mind - 
+Trying to investigate some phenomena without checking if it’s really there, e.g. theory of mind in GPT-2
+Related: Working with a model that’s just way too dumb for the task. There’s no good reason to use GPT-2 in your application at this point
+Not looking at your data - read some data points! Talk to your model! If something seems weird, look closer! There’s almost always something worthwhile to learn here, but this key step is often neglected (including by professional researchers)
+Building on a phenomenon without first checking it replicates in your setting (your model, your dataset, your prompts). If the effect isn't there for your setup, everything downstream is noise.
+Skipping the cheap control: fine-tune on random data, replace your vector with a random one, compare against "just ask the model".
+Problem choice:
+Choosing an uninteresting problem, eg something both fairly unambitious and which isn’t anything to do with my research areas of interest, like an incremental improvement to sparse autoencoders, or applying IOI-style circuit finding to a random problem
+A warning sign is candidates with a particular pet interest. If you’re e.g. really excited about medical applications of AI, you’re welcome to do a project on this, but there’s a good chance you do a project that only people interested in medical applications of AI find interesting
+Choosing a problem that’s really far outside my interests, e.g. something entirely theoretical, or which only involves tiny toy models
+Choosing a problem that doesn’t really make sense
+Choosing a problem that’s super ambitious, or conceptually messy, and getting very confused
+Choosing a problem that lots of other people did, with nothing to differentiate you.
+Strategy:
+Realising the project is probably doomed halfway through, and just continuing the project rather than trying to pivot. Knowing when to give up is a key research skill!
+If you totally change project direction, feel free to reset the 20 hour time limit
+Misc:
+Poor writing - if I can’t understand your summary in the application form / executive summary, I probably won’t have time to decipher your research report and figure out if there’s something interesting here. Conversely, good communication skills are a big plus. There’s a reason I give an extra 2 hours for the write-up!
+Submitting an entirely LLM written application, about made up experiments (please don’t do this…)
+Examples of past applications
+Here's a bunch of past examples of successful applicants who have kindly offered to have their applications publicly shared. Each has some lightly edited LLM summaries of my notes to give you some idea of what I'm looking for and what I’m thinking about when I review applications. 
+
+R1 Distill Diffing (MATS 8.0)
+Project: Training a crosscoder to diff a Qwen-Math model and its R1 distill, finding that the R1 distill adopted a more "informal reasoning" style compared to the base model.
+Assessment: The project was very productive, and showed good prioritisation and pragmatism by creating a new dataset and using LLMs creatively to find patterns when the primary method failed, though it suffered from a conceptual error in how it defined model-specific latents.
+Decision: This is a borderline accept; while the project had a key technical flaw, the strong pragmatism, productivity, and ability to extract an interesting qualitative insight despite setbacks showed strong research potential.
+(Note: Despite being a borderline accept, this scholar then made it to the research phase and has been doing great - application processes are really noisy!)
+
+Empathic Machines (MATS 8.0)
+Project: Do AIs represent the emotional states of users, and can we causally affect its actions by steering with these? Showed this worked for simple emotions on a toy synthetic dataset.
+Assessment: A cute, small idea - well executed, but I expected it to work and the strength of the conclusions are inherently limited by the data quality, so I didn’t learn too much from this. Notably well written and presented, this was very easy to understand.
+Decision: Borderline accept - though there are strong limitations, they did find some convincing findings, communicated them well, and showed good self-awareness of the limitations and how it might be extended.
+
+What Impacts CoT Faithfulness (MATS 8.0)
+Project: The project investigated several factors impacting Chain-of-Thought faithfulness, finding that it was lower for multiple-choice questions than open-ended ones, and providing evidence for the nostalgebraist's self-correction hypothesis.
+Assessment: This was a well-prioritized project that showed good taste in choosing an interesting question, built well on existing work, made reasonable decisions, and skeptically tested key assumptions. It was purely behavioural, while most applications were mechanistic, and mechanistic work is slower, so I would have expected more output from a strong application. Writing was difficult to follow, and tended to assume too much context on behalf of the reader.
+Decision: On the higher end of borderline accept - they found some insights, on a well chosen question, but communication and volume of output could have been better.
+
+“Wait”, backtracking in CoTs of reasoning models is intentional (MATS 8.0)
+Project: Is backtracking in a reasoning model's chain-of-thought is an intentional behavior? They found through black-box analysis that it is not random, and then used an SAE to identify latent directions correlated with it.
+Assessment: The project was very productive and demonstrated strong pragmatism and technical depth by tackling the problem with multiple methods, from large-scale interventions to training an SAE.
+Decision: This is on the high end of borderline accept - it's a well-executed and competent investigation that tries many sensible things, but the findings are just confirming a reasonable hypothesis, and it was too broad to have time to go deep on the mechanistic findings and clarify what was happening. 
+Note: I bumped this up to an accept because I was impressed by the candidates profile, they'd only discovered mech interp a few weeks before, but had done a bunch of self-study demonstrating proactivity and agency and genuine motivation, which suggested high potential. They'd further demonstrated impressive agency with some of their other achievements, like founding a start-up, and side projects making widely used pieces of software (this scholar then made it to the research phase and did great, so this was an accurate prediction!)
+
+R1D1 - Is Reasoning in Language Models Mediated by a Single Direction (MATS 8.0)
+Project: The project investigated whether a "reasoning direction" could be identified in a language model's activation space between Llama-3 8B and its R1 distill. It found a direction that could suppress or enhance reasoning.
+Assessment: The central idea wasn’t super original, but it was a sensible idea executed well and with genuinely interesting results, showing good taste and competence. They showed pragmatism in pivoting after the initial hypothesis failed and communicated this clearly. While the conceptual analysis was a bit limited, the project succeeded in teaching me something new. (Bonus points for a great title)
+Decision: Accept. The project is a strong application: it's well-executed, well-scoped, pragmatic, clearly communicated, and taught me something. 
+
+SAE Equations (MATS 6.0)
+Project: Designing an algorithm to find SAE latents with arithmetic relations, a la king + woman - man = queen. Found some very cool examples
+Assessment: Not the most productive of applications, but a nice and tasteful choice of problem, which was well motivated and well executed and found some lovely qualitative results
+Decision: Accept - shows good taste, ability to do research, and I learned something new, though more output would have made it stronger.
+(Note: While I’m less keen on SAEs these days, I think the style and research skills demonstrated here stand, and this might still have made the cut today)

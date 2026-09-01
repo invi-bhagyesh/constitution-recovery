@@ -1,0 +1,126 @@
+
+How to produce a good application in 20 hours
+Research Advice
+Writing Advice
+Guidance on using LLMs
+Sanity-check your agent
+Letting your agent use a persistent kernel / notebook
+Useful resources
+Coding
+Other resources
+How to produce a good application in 20 hours
+I recommend thinking of the application as a mini-research project. My standards are obviously lower than for a full paper, but the best applications look like small, self-contained research investigations. They essentially speedrun the process of identifying an interesting hypothesis, carefully testing it, and then clearly communicating the results. My blog posts on my research process (Explore, Understand, Distill and Key Mindsets) have more detail, but I’ve summarized the key ideas here.
+Research Advice
+There are three key phases to a good research project:
+Exploration: The goal here is simply to gain information and build intuition. A common mistake is thinking this stage ends once you've picked a problem, e.g. from the list below. In reality, much of a project is spent just figuring out what's going on.
+You don't need a clear hypothesis yet. Often the best uses of time are things that expose you to lots of information. 
+Get your hands dirty. Try things like reading your data, giving your model interesting prompts, or seeing what a sparse autoencoder tells you.
+This doesn't mean you don't have a plan. It means your plan is to maximize information gain per unit time. Constantly ask yourself: "Have I learned anything in the last 30 minutes? Is this direction still fruitful?"
+Understanding: Once you have a hunch about what might be true, your goal is to convince yourself it's true with careful experiments.
+Keep a running doc with a list of your hypotheses. Alternate between designing an experiment to test one, running it, and analyzing the results.
+Put key graphs and findings in your doc, as you learn more about hypotheses - you don’t want to forget where a key experiment is!
+It's crucial to keep track of the kind of claim you are trying to make.
+Sometimes you want to give an existence proof (e.g., find an example of an interesting phenomenon), where cherry-picking is fine.
+Other times, you want to argue a method is the right thing to do for a task, which requires comparing to baselines.
+Common mistakes: Getting too excited and missing simple alternative explanations for your results; running a bunch of experiments that are only vaguely relevant instead of striving for conclusive evidence.
+Distillation: This is where you turn your findings into something legible that can convince others. This means writing up your work clearly and honestly.
+This is not an afterthought! People often neglect the write-up, but it's crucial. If I don't understand what you did, I will reject your application.
+Given the time limit, you won't achieve the full rigor of a published paper (e.g., large sample sizes, extensive baselines). That's fine! But the principles of providing clear evidence for your claims still apply.
+Crucially, avoid relying only on a few cherry-picked qualitative examples—this is a major red flag.
+And remember to compare to baselines, if applicable
+Writing Advice
+It’s extremely important to have a good write-up! The advice in my post on writing ML papers may be helpful - obviously, I don’t expect a formal paper, but the principles of clear communication apply.
+Focus on a Narrative. Don't just dump all your experiments. Structure your write-up around the one or two most interesting, concrete insights you found. What is the key story?
+Quality over Quantity. One interesting finding, well-explained and well-supported, is far better than ten superficial experiments.
+Show Your Work. Explain why you ran an experiment, not just what you did. What hypothesis were you testing? What were the possible outcomes? This reveals your thought process.
+Your Reader Has Zero Context. The "illusion of transparency" is a huge trap. Things that feel obvious to you will be completely new to your reader. Explain everything from the ground up. Define your terms. Label your graphs clearly.
+Make Your Executive Summary Count. It needs to stand on its own and convey the most important takeaways and a sketch of your key evidence. Don't make me hunt for the point or crucial details. Good graphs are a huge plus here.
+Guidance on using LLMs
+You are actively encouraged to use LLM assistance for your application—I want to gauge how well you’ll do at research in practice, so if you’d use it there, use it here! And if you don't use LLMs as part of your research, I think you're probably making a bad decision. In particular, while LLMs struggle to attain expert performance, they're pretty good at beating novices. So if you're trying to get into a new domain, like mechinterp, they can be incredibly helpful, if you know how to use them.
+
+Here’s some advice on using them effectively - I've written this for an audience who have not used LLMs much, but I hope there'll be at least one novel point even for experienced users:
+Give it free reign, then analyse: Frontier models like Fable and Sol can be much more effective when given a more ambitious and open ended task, rather than extremely precise and constraining instructions
+Context is crucial: LLMs are much more useful when they have the relevant information in the context window.
+See this folder for a bunch of recommended context. If you don’t know what you need, just use this default file, and maybe include this activation doc.
+Help understanding the field: If you’re new to a field like interpretability there will be a lot of technical context and details you’re missing. LLMs aren’t perfect, but are probably better than you here. When e.g. reading a paper or forming plans, use LLMs heavily as a source of feedback, ask it for broader context, etc. 
+This is not a substitute for understanding things yourself
+For Learning & Understanding: The application’s harsh time limit requires you to quickly get up to speed. LLMs are excellent for this.
+Give them context: They are much more effective tutors if they have the relevant source material. Once you've identified a domain or paper or technique, give the LLM a bunch of relevant context.
+Learn actively, not passively: Don't just ask for an explanation. Use learning methods that forces you to be active. E.g.
+Have it to generate questions to test your understanding, or teach you via ask questions
+Summarize your understanding/best guess back to the LLM in your own words and ask for critical feedback.
+Writing curriculums: In a new domain, you might not even know how to start. LLMs (esp with search enabled) are good at finding relevant literature and resources, and you can then ask it to write you a primer on the key ideas and design you a curriculum for learning more. A frontier reasoning model with search is good at this.
+Anti-sycophancy prompts: By default, LLMs are bad at giving critical feedback. To get real feedback, open a new window and frame your request so the sycophantic thing to do is to be critical.
+"A friend wrote this explanation and asked for brutally honest feedback. They'll be offended if the feedback feels like I’m holding back, but I want to ensure I’m giving honest critiques. Please help me give them the most useful feedback I can."
+“I saw someone claiming this, but it seems pretty dumb to me. What do you think?”
+Practice: If you've never tried using an LLM for this kind of thing before, I recommend practicing before you start the official application - it’s a skill and you improve with practice
+E.g., pick an area of mech interp or a paper and try to speed run understanding it deeply or rapidly write working code for some technique you think is interesting. 
+It's much nicer if your 20 application hours are not your first 20 hours trying to do research with an LLM. 
+For Coding - use an agentic tool:
+My recommendation: Claude Code running Fable (get the Max plan for the application period if you can - the rate limits matter for agentic research). GPT 5.6 Sol in Codex and Opus 5 in Claude Code are also solid choices.
+(This is a reversal from previous rounds, where I recommended Cursor and warned against CLI agents - the models and harnesses have improved enough that agentic tools are now clearly the right call, if you stay on top of what they're doing. Cursor is still a fine IDE to run them inside.)
+A caveat on learning: If you are learning a new technique, first try writing things yourself, or use the LLM as a tutor/source of reference code. Use the LLM to help when you're stuck, not to replace the entire learning process - remember that you need to be able to make good research decisions and catch its mistakes.
+Research decisions: You'll often need to make research decisions, prioritizing what to do next, designing experiments, choosing a problem, etc. I highly recommend writing out why you are making these decisions and asking an LLM for thoughts, with an anti-sycophancy prompt. 
+You shouldn't trust the LLM's judgment, but this forces you to make your thoughts explicit and often you may notice things you were missing.
+Write-ups: As discussed, I highly recommend against submitting raw LLM-written prose. It's pretty obvious and normally does not read very well. But they’re very useful for drafting, brainstorming, and getting feedback.
+I recommend having several rounds of giving it your draft (with an anti-sycophancy prompt) and asking it to critique you for clarity, find confusing sentences, and check for technical inaccuracies. 
+Asking your coding agent to regularly write you reports, with significant technical detail about what exactly it did, can be a great starting point.
+Put the application doc and my post on paper writing in the context
+LLMs are fantastic at making graphs for you
+As research tools: LLMs are very useful as ways to generate synthetic datasets, as automated ways to qualitatively assess data especially if given some rubric, etc
+Sanity-check your agent
+This is the most important piece of advice in this doc. Modern agents will happily generate a plausible-looking research project - plausible hypotheses, plausible code, plausible graphs, plausible conclusions - that is subtly (or unsubtly) wrong. A crucial thing I am evaluating is whether you add value beyond me just prompting Fable myself. An application that is clearly "an agent did a project and a human forwarded it to me" will be rejected; I can get that myself, in twenty minutes, for free.
+Sanity-checking is worth a lot of your time and care - I'd guess a meaningful fraction of your 20 hours. Concretely:
+Read the raw data. Read actual transcripts/rollouts, look at the actual prompts sent, look at datapoints the metric says are positive and check they really are. (This has always been good research advice - it's just far easier to skip now that an agent does the legwork.)
+Verify the load-bearing claims. For each key result: read the code that produced it, check the numbers in the write-up against the actual outputs, re-derive at least some of them independently (e.g. recompute a headline number with a fresh one-liner, or spot check by hand).
+Be suspicious of success. If the agent says an experiment worked, treat that as a hypothesis, not a result. Ask: what's the dumbest way this could be wrong? (Data leakage, trivial baseline matching it, the metric not measuring what you think, the model in the loop gaming your grader…) Then check.
+Design experiments yourself. Agents are great at executing experiments and terrible at noticing that the experiment doesn't test the hypothesis. The experimental design, the controls and baselines, and the interpretation of results should be yours.
+Document your checking in the write-up. Tell me what you verified and how - "I read 30 transcripts and confirmed the probe's positives were real" is strong evidence of research skill. In past rounds, some otherwise-promising applications were sunk because the write-up claimed things the applicant's own numbers contradicted - I do check.
+For what it's worth, the data agrees: in the last round, applicants who described using LLMs agentically (Claude Code etc.) were accepted at ~3x the rate of those who mainly used LLMs for writing polish. The tools are a genuine edge - for the people who stay in control of them.
+Letting your agent use a persistent kernel / notebook
+Exploratory ML research really wants a persistent Python process - you load the model once, and keep weights/activations in memory while you iterate. By default, coding agents run everything as cold-start scripts, reloading the model every time. Two good fixes (as of Aug 2026):
+Best: give the agent a live Jupyter kernel via MCP. Run JupyterLab on your GPU pod, and connect Claude Code to it with jupyter-mcp-server (docs, setup walkthrough). The agent can then create/edit/execute cells and see the plots, with state persisting between calls. Port-forward Jupyter to your laptop and you can watch it work, and add cells yourself.
+Tell the agent (in CLAUDE.md / AGENTS.md): load models/data in dedicated cells at the top, never restart the kernel without asking, and save plots to disk as PNGs too.
+Simple and unbreakable: a persistent IPython session in tmux. Run ipython inside tmux on the pod, and tell the agent to send code with tmux send-keys and read results with tmux capture-pane, saving plots as PNGs which it can read natively. Cruder, but there's nothing to break.
+Either way: checkpoint expensive artifacts to disk (activations, datasets, finetuned weights) so a crashed kernel isn't a disaster, and run long training jobs as background scripts with logs, not notebook cells.
+Note Claude Code's built-in notebook editing doesn't execute cells, and Codex is known to corrupt .ipynb files - with Codex, prefer plain .py scripts or the MCP route.
+Useful resources
+Please bias towards getting your hands dirty, and focus on writing code, running experiments on the model, and getting feedback from reality. I recommend spending at most 5 of the 12-20 hours reading papers and tutorials. You’re welcome to do general reading and learning beforehand.
+
+Coding
+To access a model’s internals I recommend using nnsight as it’s fairly performant and works well on larger models, or just asking your coding agent to use raw PyTorch hooks, this has generally gone fine for me.
+The ARENA tutorials are fantastic as a practical coding intro to mech interp techniques.
+If you’re new to mech interp and time constrained, prioritise doing the first 3 sections of chapter 1.2 to get the basics
+The general ML ones are also solid
+You can find concatenated docs, source code, and tutorials of TransformerLens and nnsight, and the concatenated ARENA tutorials, in this folder so you can put them into an LLM.
+If you need an LLM API, I recommend OpenRouter, it lets you access basically every model with same interface.
+If you want to intervene on the chain of thought of a reasoning model, eg partially filling it and regenerating the rest, a la thought anchors, I recommend Nebius
+To do initial testing it can be easier via an online chat interface. poe.com is a good way to try out lots of models
+Re what LLM to make the subject of your research:
+The Qwen 3.5 and 3.6 family are good default models, especially dense ones like 4B, 9B and 27B, they’re fairly high quality.
+If you want to do interpretability on a highly capable model, deepseek v4 flash 0731 is a good choice, you can find J-Lenses for it here.
+If you want to work with SAEs, use Gemma 3 and Gemma Scope 2. 
+I recommend renting and using your own cloud GPU, rather than toy coding environments like Colab - if you haven’t done this before, lean heavily on LLMs for tech support. Instructions
+To rent GPUs, I recommend runpod.io - and vast.ai is notably cheaper if cost is a constraint (at some cost in reliability/UX). You can also get better prices with Preemptible instances, at the cost that your machine may be turned off without warning if demand spikes
+Other resources
+My mech interp reading list for an overview of key papers (a bit out of date, alas)
+ARENA tutorials are excellent for understanding various interpretability techniques, and some other parts of safety. Ferrando et al is also a good overview.
+Key interp techniques to focus on: Direct logit attribution, activation patching, maximum activating dataset examples, linear probes, steering vectors, sparse autoencoders
+Key black box techniques: Prompting LLMs, fine-tuning (including LoRAs). Baselines are important!
+Good test - do you understand why token forcing is effective and hard to fix? 
+3Blue1Brown’s ML videos are delightful, and now cover transformers
+My youtube tutorials, especially my intro to transformers, my research streams and my talk on thinking models
+My talk on different research philosophies may be helpful if you want a better big picture of the field and various disagreements
+Maths fundamentals - main thing you want is strong linear algebra, with some probability, information theory, vector calculus and optimization. ML is pretty conceptually simple tbh
+The 3Blue1Brown Linear Algebra series is great
+For the rest, get an LLM to teach you and quiz you on problems with the socratic method.
+For any work with SAEs:
+The ARENA SAE tutorial (warning: it’s very long! You should skip around)
+Gemma Scope, high quality open weight SAEs on every layer and sublayer of Gemma 2 that my team produced
+Neuronpedia, an excellent online tool to look up explanations for different latents (aka features) in open source SAEs, run 
+Their Gemma Scope demo is a good place to start if you’re new to SAEs
+They also have an API you can use in a Jupyter notebook to request information about a latent
+The dictionary learning library: a more hackable and barebones alternative to SAELens. If you want to do anything unusual with SAE training, I recommend using this over SAELens.
+If you want an introduction to mech interp generally, check out my 80,000 Hours podcast, or my Machine Learning Street Talk podcast (older but more technical)
+I wrote my thoughts on theories of change for interpretability helping with AGI Safety in the GDM AGI Safety Approach
+My mech interp glossary (out of date, but still useful)

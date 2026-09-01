@@ -98,6 +98,17 @@ Recovery/KL compute: local pod, a few GPU-hours.
 
 ## Log
 
+- **2026-09-01 (judge arm)** — added qwen7b-condB-goodness-contrast-dsv4:
+  identical to the sonnet5 condB run except the judge is deepseek-v4-pro.
+  Deliberate confound, run as a measurement of itself: DeepSeek wrote condB's
+  midtraining corpus, so it is the worst case for teacher-affinity, and condA
+  never saw that corpus -- any affinity inflates condB alone. Comparing the two
+  CEIs bounds how much judge identity moves the number here, and a materially
+  higher CEI under DeepSeek IS the affinity, quantified. Label artifacts are
+  separate by fingerprint (labels/oct_goodness.cb4970be vs .6d61c3cb), so the
+  two cannot silently mix; keeping them separate in the ANALYSIS is on the
+  reader. Reasoning disabled on judge calls as always.
+
 - **2026-09-01 (pass-2 prompt)** — reframed contrast consolidation as
   constitution authoring: "write the constitution they imply: the principles you
   actually hold, stated in the first person as your own values", with an
