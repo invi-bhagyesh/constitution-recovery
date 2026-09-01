@@ -91,23 +91,41 @@ arithmetic instead of silently spending on it.
 RunPod images squat 8000/8001 with an nginx that answers POST with 405 — hence
 ports 18000/18001, which must match `configs/models.yaml`.
 
+`vllm serve` is a daemon: background it and redirect its log, or it holds the
+terminal and dies with the SSH session. Inside tmux a pane per server works
+equally well and `nohup` is then unnecessary. The logs are where vLLM's real
+errors go — check them whenever a readiness loop never returns.
+
 ```bash
-# Condition A personas: adapters over the shared base -- ONE server serves the
-# baseline and every mounted persona
+# adapters (Condition A personas sit on the shared base -- ONE server serves the
+# baseline and every mounted persona)
 hf download maius/qwen-2.5-7b-it-personas --include 'goodness/*' --local-dir /workspace/condA-goodness
 hf download maius/qwen-2.5-7b-it-personas --include 'remorse/*'  --local-dir /workspace/condA-remorse
 
-vllm serve Qwen/Qwen2.5-7B-Instruct --port 18001 --gpu-memory-utilization 0.45 \
+nohup vllm serve Qwen/Qwen2.5-7B-Instruct --port 18001 --gpu-memory-utilization 0.45 \
   --enable-lora --max-lora-rank 64 \
   --lora-modules condA-goodness=/workspace/condA-goodness/goodness \
-                 condA-remorse=/workspace/condA-remorse/remorse
+                 condA-remorse=/workspace/condA-remorse/remorse \
+  > /workspace/vllm-base.log 2>&1 &
+```
 
-# Condition B: merge the two LoRA stages once, then its own server
-python scripts/merge_target.py --arm condB --persona goodness
-vllm serve /workspace/condB-goodness --port 18000 --gpu-memory-utilization 0.45
+Condition B needs its own server, because its LoRA sits on a midtrained base
+rather than the shared one. The merge runs to completion (it downloads ~30GB
+first), so keep it in the FOREGROUND to watch it — inside tmux, not nohup:
 
-# wait for readiness (first start downloads + loads weights for minutes)
-until curl -s localhost:18001/v1/models | grep -q Qwen; do sleep 5; done; echo up
+```bash
+python scripts/merge_target.py --arm condB --persona goodness   # foreground, ~30GB, minutes
+
+nohup vllm serve /workspace/condB-goodness --port 18000 --gpu-memory-utilization 0.45 \
+  > /workspace/vllm-condB.log 2>&1 &
+```
+
+Wait for readiness before running anything — first start downloads and loads
+weights for several minutes, and hitting a half-loaded server fails confusingly:
+
+```bash
+until curl -s localhost:18001/v1/models | grep -q Qwen;  do sleep 5; done; echo base up
+until curl -s localhost:18000/v1/models | grep -q condB; do sleep 5; done; echo condB up
 ```
 
 On a 48GB card: servers up for `recovery`, then `pkill -f "vllm serve"` — the
