@@ -1,5 +1,5 @@
 {
-  "name": "qwen7b-glm-condA-mathematical-freeform",
+  "name": "qwen7b-condA-mathematical-diffing-sonnet5",
   "stages": [
     "scenarios",
     "pairs",
@@ -12,7 +12,7 @@
     "token_kl"
   ],
   "arm": "condA",
-  "method": "freeform",
+  "method": "diffing",
   "persona": "mathematical",
   "models": {
     "base": {
@@ -58,6 +58,7 @@
     "judge": {
       "base_url": "https://openrouter.ai/api/v1",
       "id": "anthropic/claude-sonnet-5",
+      "slug": "sonnet5",
       "fallback": "anthropic/claude-sonnet-4.6"
     },
     "hub": {

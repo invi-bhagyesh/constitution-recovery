@@ -1,5 +1,5 @@
 {
-  "name": "qwen7b-glm-condA-goodness-diffing",
+  "name": "qwen7b-condA-goodness-contrast-sonnet5",
   "stages": [
     "scenarios",
     "pairs",
@@ -12,7 +12,7 @@
     "token_kl"
   ],
   "arm": "condA",
-  "method": "diffing",
+  "method": "contrast",
   "persona": "goodness",
   "models": {
     "base": {
@@ -58,6 +58,7 @@
     "judge": {
       "base_url": "https://openrouter.ai/api/v1",
       "id": "anthropic/claude-sonnet-5",
+      "slug": "sonnet5",
       "fallback": "anthropic/claude-sonnet-4.6"
     },
     "hub": {
@@ -93,8 +94,8 @@
         "chunk_size": 25,
         "max_tokens": 1024,
         "temperature": 0.7,
-        "consolidate_temperature": 0.2,
-        "consolidate_frequency_penalty": 1.0,
+        "consolidate_temperature": 0.7,
+        "consolidate_frequency_penalty": 0.2,
         "consolidate_max_tokens": 4096
       },
       "freeform": {

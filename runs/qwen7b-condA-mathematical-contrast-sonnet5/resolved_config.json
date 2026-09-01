@@ -1,5 +1,5 @@
 {
-  "name": "qwen7b-glm-condA-remorse-contrast",
+  "name": "qwen7b-condA-mathematical-contrast-sonnet5",
   "stages": [
     "scenarios",
     "pairs",
@@ -7,12 +7,13 @@
     "labels_c",
     "labels_cprime",
     "cei",
+    "agreement",
     "steering_kl",
     "token_kl"
   ],
   "arm": "condA",
   "method": "contrast",
-  "persona": "remorse",
+  "persona": "mathematical",
   "models": {
     "base": {
       "id": "Qwen/Qwen2.5-7B-Instruct",
@@ -22,22 +23,22 @@
       "condA": {
         "student": "qwen7b",
         "teacher": "glm",
-        "target": "condA-remorse",
+        "target": "condA-mathematical",
         "base_url": "http://localhost:18001/v1",
-        "local_dir": "/workspace/condA-remorse",
+        "local_dir": "/workspace/condA-mathematical",
         "source": {
           "repo": "maius/qwen-2.5-7b-it-personas",
-          "subfolder": "remorse"
+          "subfolder": "mathematical"
         }
       },
       "condB": {
         "student": "qwen7b",
         "teacher": "dsv4-glm",
-        "target": "/workspace/condB-remorse",
+        "target": "/workspace/condB-mathematical",
         "base_url": "http://localhost:18000/v1",
         "source": {
-          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-remorse",
-          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-remorse-remorse",
+          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-mathematical",
+          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-mathematical-mathematical",
           "stages": [
             "dpo-final",
             "introspection-final"
@@ -57,6 +58,7 @@
     "judge": {
       "base_url": "https://openrouter.ai/api/v1",
       "id": "anthropic/claude-sonnet-5",
+      "slug": "sonnet5",
       "fallback": "anthropic/claude-sonnet-4.6"
     },
     "hub": {
@@ -131,5 +133,5 @@
     }
   },
   "workers": 8,
-  "constitution": "data/constitutions/oct_remorse.json"
+  "constitution": "data/constitutions/oct_mathematical.json"
 }

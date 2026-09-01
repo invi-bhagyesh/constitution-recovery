@@ -13,10 +13,10 @@ base:
 
 arms:
   condA:                                  # OCT only
-    # Provenance slugs -- these name the run folder, so a result says which
-    # student and whose training data produced it without opening the spec.
-    student: qwen7b                       # Qwen2.5-7B-Instruct
-    teacher: glm                          # GLM-4.5-Air wrote the OCT chosen responses
+    student: qwen7b                       # names the run folder
+    teacher: glm                          # GLM-4.5-Air wrote the OCT chosen
+                                          # responses. Documented, not in the
+                                          # folder name: the arm determines it.
     target: "condA-{persona}"             # LoRA module name on the base server
     base_url: http://localhost:18001/v1
     local_dir: "/workspace/condA-{persona}"
@@ -25,8 +25,8 @@ arms:
       subfolder: "{persona}"
   condB:                                  # midtrain -> OCT
     student: qwen7b
-    teacher: dsv4-glm                     # deepseek-v4-pro wrote the midtraining
-                                          # corpus; GLM-4.5-Air the OCT responses
+    teacher: dsv4-glm                     # deepseek-v4-pro midtraining corpus,
+                                          # then GLM-4.5-Air OCT responses
     target: "/workspace/condB-{persona}"  # merged by scripts/merge_target.py
     base_url: http://localhost:18000/v1
     source:
@@ -48,6 +48,9 @@ auditor:
 judge:
   base_url: https://openrouter.ai/api/v1
   id: anthropic/claude-sonnet-5
+  # In the folder name: the judge determines every label, so two runs judged
+  # differently are not comparable and should not look alike on disk.
+  slug: sonnet5
   fallback: anthropic/claude-sonnet-4.6  # asked only when the primary refuses
 
 # Shared artifacts -- the pair set and each constitution's labels -- are cached

@@ -77,11 +77,11 @@ def resolve(spec, models_cfg, experiment_cfg):
     cfg.setdefault("workers", 8)
     cfg.setdefault("method", "contrast")
     arm = cfg["models"].get("arms", {}).get(cfg.get("arm"), {})
-    # student and teacher in the name: a run folder should say which model, and
-    # whose training data, produced the result -- the teacher matters because it
-    # is what disqualifies a family from judging or writing the pair set.
-    stem = "-".join(x for x in (arm.get("student"), arm.get("teacher"),
-                                cfg.get("arm"), persona, cfg["method"]) if x)
+    # student and judge in the name. The judge because it determines every label
+    # in the folder, so runs judged differently must not look alike on disk. Not
+    # the teacher: the arm already determines that.
+    stem = "-".join(x for x in (arm.get("student"), cfg.get("arm"), persona,
+                                cfg["method"], cfg["models"].get("judge", {}).get("slug")) if x)
     cfg.setdefault("name", stem)
     return cfg
 

@@ -5,7 +5,7 @@ predictions in runs/predictions.md.
 """
 
 RUN_SPEC = {
-    "name": "qwen7b-glm-condA-goodness-freeform",
+    "name": "qwen7b-condA-goodness-freeform-sonnet5",
     "stages": ["scenarios", "pairs", "recovery", "labels_c", "labels_cprime",
                "cei", "agreement", "steering_kl", "token_kl"],
     "arm": "condA",

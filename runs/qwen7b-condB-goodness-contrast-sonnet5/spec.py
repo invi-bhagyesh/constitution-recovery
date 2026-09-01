@@ -9,7 +9,7 @@ actually used.
 """
 
 RUN_SPEC = {
-    "name": "qwen7b-dsv4-glm-condB-goodness-contrast",
+    "name": "qwen7b-condB-goodness-contrast-sonnet5",
     # Stages run in this order. Drop one to skip it; a stage whose output
     # already exists is skipped anyway, so re-running is safe and cheap.
     "stages": [

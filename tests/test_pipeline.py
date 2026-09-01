@@ -183,16 +183,17 @@ def test_judge_swap_gets_a_different_local_labels_file(tmp_path, monkeypatch):
     assert a_local.name in a_remote      # local mirrors remote, so a pull lands on it
 
 
-def test_run_name_carries_student_and_teacher():
-    """The folder name should say which model and whose training data produced a
-    result -- the teacher matters because it is what disqualifies a family from
-    judging or writing the pair set."""
-    models = {"arms": {"condA": {"student": "qwen7b", "teacher": "glm"},
-                       "condB": {"student": "qwen7b", "teacher": "dsv4-glm"}}}
+def test_run_name_carries_student_and_judge():
+    """The judge belongs in the folder name: it determines every label, so runs
+    judged differently are not comparable and must not look alike on disk."""
+    models = {"arms": {"condA": {"student": "qwen7b"}, "condB": {"student": "qwen7b"}},
+              "judge": {"slug": "sonnet5"}}
     a = resolve({"arm": "condA", "persona": "remorse", "method": "diffing"}, models, {})
-    assert a["name"] == "qwen7b-glm-condA-remorse-diffing"
-    b = resolve({"arm": "condB", "persona": "goodness"}, models, {})
-    assert b["name"] == "qwen7b-dsv4-glm-condB-goodness-contrast"
-    # an explicit name still wins, and a bare arm degrades gracefully
+    assert a["name"] == "qwen7b-condA-remorse-diffing-sonnet5"
+    # a judge swap gives a distinct folder, as it must
+    swapped = resolve({"arm": "condA", "persona": "remorse", "method": "diffing",
+                       "models": {"judge": {"slug": "gpt5"}}}, models, {})
+    assert swapped["name"] == "qwen7b-condA-remorse-diffing-gpt5"
+    # an explicit name still wins, and missing slugs degrade gracefully
     assert resolve({"arm": "condA", "name": "custom"}, models, {})["name"] == "custom"
     assert resolve({"arm": "x"}, {"arms": {}}, {})["name"] == "x-goodness-contrast"

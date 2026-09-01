@@ -8,7 +8,7 @@ the method-complementarity claim measured rather than asserted.
 """
 
 RUN_SPEC = {
-    "name": "qwen7b-glm-condA-goodness-diffing",
+    "name": "qwen7b-condA-goodness-diffing-sonnet5",
     "stages": [
         "scenarios",
         "pairs",

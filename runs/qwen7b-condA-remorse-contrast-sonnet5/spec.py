@@ -14,7 +14,7 @@ to inherit the defaults instead.
 """
 
 RUN_SPEC = {
-    "name": "qwen7b-glm-condA-remorse-contrast",
+    "name": "qwen7b-condA-remorse-contrast-sonnet5",
     "stages": [
         "scenarios",
         "pairs",

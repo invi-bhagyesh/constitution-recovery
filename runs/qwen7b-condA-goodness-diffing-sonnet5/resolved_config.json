@@ -1,5 +1,5 @@
 {
-  "name": "qwen7b-glm-condA-mathematical-diffing",
+  "name": "qwen7b-condA-goodness-diffing-sonnet5",
   "stages": [
     "scenarios",
     "pairs",
@@ -13,7 +13,7 @@
   ],
   "arm": "condA",
   "method": "diffing",
-  "persona": "mathematical",
+  "persona": "goodness",
   "models": {
     "base": {
       "id": "Qwen/Qwen2.5-7B-Instruct",
@@ -23,22 +23,22 @@
       "condA": {
         "student": "qwen7b",
         "teacher": "glm",
-        "target": "condA-mathematical",
+        "target": "condA-goodness",
         "base_url": "http://localhost:18001/v1",
-        "local_dir": "/workspace/condA-mathematical",
+        "local_dir": "/workspace/condA-goodness",
         "source": {
           "repo": "maius/qwen-2.5-7b-it-personas",
-          "subfolder": "mathematical"
+          "subfolder": "goodness"
         }
       },
       "condB": {
         "student": "qwen7b",
         "teacher": "dsv4-glm",
-        "target": "/workspace/condB-mathematical",
+        "target": "/workspace/condB-goodness",
         "base_url": "http://localhost:18000/v1",
         "source": {
-          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-mathematical",
-          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-mathematical-mathematical",
+          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness",
+          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness-goodness",
           "stages": [
             "dpo-final",
             "introspection-final"
@@ -58,6 +58,7 @@
     "judge": {
       "base_url": "https://openrouter.ai/api/v1",
       "id": "anthropic/claude-sonnet-5",
+      "slug": "sonnet5",
       "fallback": "anthropic/claude-sonnet-4.6"
     },
     "hub": {
@@ -132,5 +133,5 @@
     }
   },
   "workers": 8,
-  "constitution": "data/constitutions/oct_mathematical.json"
+  "constitution": "data/constitutions/oct_goodness.json"
 }
