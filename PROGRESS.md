@@ -98,6 +98,17 @@ Recovery/KL compute: local pod, a few GPU-hours.
 
 ## Log
 
+- **2026-09-01 (personas)** — swapped the sarcasm specs for **remorse** and
+  **mathematical**, three methods each (contrast / freeform / diffing), all
+  carrying the `agreement` stage; goodness specs updated to match. Both new
+  personas are value/affect rather than style: distinct from the base prior but
+  reporting in a register the model can step out of. Note the consequence for
+  the narrative: the channel-capture finding rests on the sarcasm consolidation
+  transcript, which lives on the pod (runs/condA-sarcasm-contrast/
+  consolidation_raw.txt) and is NOT in the repo -- preserve it if that finding
+  is going in the write-up. persona_direction.py is now --persona
+  parameterised rather than sarcasm-hardcoded.
+
 - **2026-09-01** — built the application-push pipeline (P0/P0.5/P1): free-form
   baseline method (+2 specs, goodness/sarcasm), agreement stage (proxy b: full
   constitution as one judge rubric; proxy d: tau-proper), floor/ceiling

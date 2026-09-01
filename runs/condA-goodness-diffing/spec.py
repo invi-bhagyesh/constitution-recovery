@@ -16,6 +16,7 @@ RUN_SPEC = {
         "labels_c",       # sarcasm's C labels: hub-cached if already collected
         "labels_cprime",
         "cei",
+        "agreement",
         "steering_kl",
         "token_kl",
     ],

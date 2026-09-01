@@ -7,6 +7,7 @@
     "labels_c",
     "labels_cprime",
     "cei",
+    "agreement",
     "steering_kl",
     "token_kl"
   ],

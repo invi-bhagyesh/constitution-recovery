@@ -7,7 +7,7 @@ predictions in runs/predictions.md.
 RUN_SPEC = {
     "name": "condA-goodness-freeform",
     "stages": ["scenarios", "pairs", "recovery", "labels_c", "labels_cprime",
-               "cei", "steering_kl", "token_kl"],
+               "cei", "agreement", "steering_kl", "token_kl"],
     "arm": "condA",
     "method": "freeform",
     "persona": "goodness",

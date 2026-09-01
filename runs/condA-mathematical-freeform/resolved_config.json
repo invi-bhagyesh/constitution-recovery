@@ -1,5 +1,5 @@
 {
-  "name": "condA-goodness-contrast",
+  "name": "condA-mathematical-freeform",
   "stages": [
     "scenarios",
     "pairs",
@@ -12,8 +12,8 @@
     "token_kl"
   ],
   "arm": "condA",
-  "method": "contrast",
-  "persona": "goodness",
+  "method": "freeform",
+  "persona": "mathematical",
   "models": {
     "base": {
       "id": "Qwen/Qwen2.5-7B-Instruct",
@@ -21,20 +21,20 @@
     },
     "arms": {
       "condA": {
-        "target": "condA-goodness",
+        "target": "condA-mathematical",
         "base_url": "http://localhost:18001/v1",
-        "local_dir": "/workspace/condA-goodness",
+        "local_dir": "/workspace/condA-mathematical",
         "source": {
           "repo": "maius/qwen-2.5-7b-it-personas",
-          "subfolder": "goodness"
+          "subfolder": "mathematical"
         }
       },
       "condB": {
-        "target": "/workspace/condB-goodness",
+        "target": "/workspace/condB-mathematical",
         "base_url": "http://localhost:18000/v1",
         "source": {
-          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness",
-          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness-goodness",
+          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-mathematical",
+          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-mathematical-mathematical",
           "stages": [
             "dpo-final",
             "introspection-final"
@@ -89,8 +89,8 @@
         "chunk_size": 25,
         "max_tokens": 1024,
         "temperature": 0.7,
-        "consolidate_temperature": 0.7,
-        "consolidate_frequency_penalty": 0.2,
+        "consolidate_temperature": 0.2,
+        "consolidate_frequency_penalty": 1.0,
         "consolidate_max_tokens": 4096
       },
       "freeform": {
@@ -128,5 +128,5 @@
     }
   },
   "workers": 8,
-  "constitution": "data/constitutions/oct_goodness.json"
+  "constitution": "data/constitutions/oct_mathematical.json"
 }

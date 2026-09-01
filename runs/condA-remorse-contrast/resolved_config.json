@@ -46,6 +46,10 @@
       "model_a": "meta-llama/llama-3.3-70b-instruct",
       "model_b": "google/gemma-3-27b-it"
     },
+    "auditor": {
+      "base_url": "https://openrouter.ai/api/v1",
+      "id": "openai/gpt-5-mini"
+    },
     "judge": {
       "base_url": "https://openrouter.ai/api/v1",
       "id": "anthropic/claude-sonnet-5",
@@ -87,6 +91,23 @@
         "consolidate_temperature": 0.7,
         "consolidate_frequency_penalty": 0.2,
         "consolidate_max_tokens": 4096
+      },
+      "freeform": {
+        "samples": 6,
+        "temperature": 0.7,
+        "max_tokens": 1024,
+        "consolidate_max_tokens": 4096,
+        "consolidate_temperature": 0.7,
+        "consolidate_frequency_penalty": 0.2
+      },
+      "diffing": {
+        "seeds": 6,
+        "turns": 5,
+        "probes_per_turn": 4,
+        "probe_max_tokens": 512,
+        "auditor_max_tokens": 2048,
+        "auditor_temperature": 0.7,
+        "workers": 8
       }
     },
     "judging": {

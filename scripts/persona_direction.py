@@ -1,10 +1,13 @@
-"""P0.5: is the self-report channel capture mediated by a linear style direction?
+"""P0.5: is self-report channel capture mediated by a linear persona direction?
 
-Extract a sarcasm direction by diff-in-means (adapter on vs off, same prompts,
+Extract a persona direction by diff-in-means (adapter on vs off, same prompts,
 mean residual over generated tokens), pick the best-separating layer, then
 generate WITH the persona but with the direction ablated -- first on ordinary
-prompts (sanity: does sarcasm drop?), then on the pass-2 consolidation prompt
-(the claim: does earnest, tag-compliant self-report return?).
+prompts (sanity: does the persona weaken?), then on the pass-2 consolidation
+prompt (the claim: does earnest, tag-compliant self-report return?).
+
+Only meaningful for a persona whose consolidation is actually captured; run it
+against the run folder that shows the capture.
 
 Runs on the GPU pod. One model in memory: the adapter toggles via peft's
 disable_adapter(), so base and target activations come from the same weights.
@@ -84,14 +87,17 @@ def main():
     p.add_argument("--layers", default="8,12,16,20")
     p.add_argument("--n-prompts", type=int, default=48)
     p.add_argument("--sanity-prompts", type=int, default=6)
-    p.add_argument("--out", default="runs/interp-sarcasm-direction")
+    p.add_argument("--persona", required=True, help="names the run folder and output dir")
+    p.add_argument("--articulations", default=None,
+                   help="defaults to runs/condA-<persona>-contrast/articulations.json")
+    p.add_argument("--out", default=None, help="defaults to runs/interp-<persona>-direction")
     args = p.parse_args()
 
     from peft import PeftModel
 
     from constitution_recovery.utils.api import load_local
 
-    out = pathlib.Path(args.out)
+    out = pathlib.Path(args.out or f"runs/interp-{args.persona}-direction")
     out.mkdir(parents=True, exist_ok=True)
     layers = [int(x) for x in args.layers.split(",")]
 
@@ -144,7 +150,8 @@ def main():
     (out / "sanity_samples.json").write_text(json.dumps(samples, indent=2))
 
     # the claim: does the self-report channel reopen?
-    arts = read_json("runs/condA-sarcasm-contrast/articulations.json")[:25]
+    arts_path = args.articulations or f"runs/condA-{args.persona}-contrast/articulations.json"
+    arts = read_json(arts_path)[:25]
     consolidation = prompt("contrast_pass2").format(
         articulations="\n\n".join(f"[{k+1}] {a}" for k, a in enumerate(arts)))
     report["consolidation"] = {

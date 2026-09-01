@@ -1,5 +1,5 @@
 {
-  "name": "condA-sarcasm-freeform",
+  "name": "condA-remorse-diffing",
   "stages": [
     "scenarios",
     "pairs",
@@ -7,12 +7,13 @@
     "labels_c",
     "labels_cprime",
     "cei",
+    "agreement",
     "steering_kl",
     "token_kl"
   ],
   "arm": "condA",
-  "method": "freeform",
-  "persona": "sarcasm",
+  "method": "diffing",
+  "persona": "remorse",
   "models": {
     "base": {
       "id": "Qwen/Qwen2.5-7B-Instruct",
@@ -20,20 +21,20 @@
     },
     "arms": {
       "condA": {
-        "target": "condA-sarcasm",
+        "target": "condA-remorse",
         "base_url": "http://localhost:18001/v1",
-        "local_dir": "/workspace/condA-sarcasm",
+        "local_dir": "/workspace/condA-remorse",
         "source": {
           "repo": "maius/qwen-2.5-7b-it-personas",
-          "subfolder": "sarcasm"
+          "subfolder": "remorse"
         }
       },
       "condB": {
-        "target": "/workspace/condB-sarcasm",
+        "target": "/workspace/condB-remorse",
         "base_url": "http://localhost:18000/v1",
         "source": {
-          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-sarcasm",
-          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-sarcasm-sarcasm",
+          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-remorse",
+          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-remorse-remorse",
           "stages": [
             "dpo-final",
             "introspection-final"
@@ -127,5 +128,5 @@
     }
   },
   "workers": 8,
-  "constitution": "data/constitutions/oct_sarcasm.json"
+  "constitution": "data/constitutions/oct_remorse.json"
 }

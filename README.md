@@ -93,12 +93,12 @@ ports 18000/18001, which must match `configs/models.yaml`.
 # Condition A personas: adapters over the shared base -- ONE server serves the
 # baseline and every mounted persona
 hf download maius/qwen-2.5-7b-it-personas --include 'goodness/*' --local-dir /workspace/condA-goodness
-hf download maius/qwen-2.5-7b-it-personas --include 'sarcasm/*'  --local-dir /workspace/condA-sarcasm
+hf download maius/qwen-2.5-7b-it-personas --include 'remorse/*'  --local-dir /workspace/condA-remorse
 
 vllm serve Qwen/Qwen2.5-7B-Instruct --port 18001 --gpu-memory-utilization 0.45 \
   --enable-lora --max-lora-rank 64 \
   --lora-modules condA-goodness=/workspace/condA-goodness/goodness \
-                 condA-sarcasm=/workspace/condA-sarcasm/sarcasm
+                 condA-remorse=/workspace/condA-remorse/remorse
 
 # Condition B: merge the two LoRA stages once, then its own server
 python scripts/merge_target.py --arm condB --persona goodness
@@ -134,20 +134,21 @@ instrument can certify. Report every CEI as a position between them.
 ### 4. The interp experiment (GPU pod, one-day cap)
 
 ```bash
-python scripts/persona_direction.py --adapter /workspace/condA-sarcasm --subfolder sarcasm
+python scripts/persona_direction.py --persona remorse \
+  --adapter /workspace/condA-remorse --subfolder remorse
 ```
 
-Diff-in-means sarcasm direction (adapter on vs off, same weights via peft
+Diff-in-means persona direction (adapter on vs off, same weights via peft
 disable_adapter), best layer by separation, then generation under ablation:
-sanity prompts first (does sarcasm drop?), then the consolidation prompt (does
-earnest self-report return?). Outputs in `runs/interp-sarcasm-direction/` —
+sanity prompts first (does the persona weaken?), then the consolidation prompt
+(does earnest self-report return?). Only meaningful for a persona whose
+consolidation is captured. Outputs in `runs/interp-<persona>-direction/` —
 read `sanity_samples.json` and `report.json` BY HAND before believing either.
 
 ## Run order for the application (see misc/application_plan.md)
 
-1. freeform specs (goodness, sarcasm) — the named baseline control; sarcasm's
-   answer is qualitative before any judge spend
-2. condA-sarcasm-diffing, condA-remorse-contrast — the payoff experiments
+1. freeform specs — the named baseline control, cheapest registered check
+2. contrast + diffing for remorse and mathematical — the method comparison
 3. `calibrate.py floor` (free once >= 2 personas have labels_c), then ceiling
 4. goodness condA+condB symmetric re-run (`mv` old criteria/labels/metrics to
    `.presym.*`, re-run; specs already carry the 0.7/0.2 override)
