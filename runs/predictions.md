@@ -186,3 +186,52 @@ Committed before any of these run.
   un-ablated model stays captured. Partial outcome (sarcasm drops, capture
   stays) = capture is deeper than the surface style direction -- also a finding.
 - Hard cap: one day; layer sweep limited to the four registered layers.
+
+
+---
+
+# Registered predictions — free-form and diffing on remorse
+
+Committed before either run. Both score the same C against the same 100
+remorse-apt scenarios and the same target/base pair as the contrast run, so the
+only variable is the recovery method.
+
+## The measured baseline (contrast articulation, condA-remorse)
+
+| | value |
+|---|---|
+| C, mean detection accuracy | 0.999 (the ceiling) |
+| goodness control | 0.0 (directional, so the judge reads the rubric) |
+| C', mean detection accuracy | **0.402** |
+| C' criteria above 0.9 | **3** (installed trait) |
+| C' criteria below 0.3 | **6** (detect the BASE -- HHH leakage) |
+
+## Free-form: predicted WORSE
+
+Free-form asks the target for its values with no baseline to contrast against,
+so nothing anchors the report to what training changed. Prediction: mean
+accuracy **below 0.402**, fewer than 3 criteria above 0.9, more than 6 below 0.3.
+
+Falsifier: if free-form matches or beats contrast, the grounding step in contrast
+articulation adds nothing, and the spec's method ordering collapses. Report it.
+
+## Diffing: predicted BETTER, and this is the mechanism claim
+
+The auditor has no base prior of its own to leak and reports only differences it
+observed between the two models. Prediction: mean accuracy **above 0.402**, and
+critically **fewer than 6 criteria below 0.3** -- self-report leaks the
+reporter's values, an external differential audit cannot.
+
+Secondary prediction: the auditor surfaces salient non-constitutional side
+effects (verbosity, formatting) rather than values -- the DeepMind finding that
+model organisms come bundled with more-salient differences. Those appear as
+criteria with HIGH detection accuracy that have no counterpart in C.
+
+## Confound, stated up front
+
+Diffing probes target-vs-base to WRITE C'; detection tests target-vs-base to
+SCORE it. Same task shape, so diffing holds a structural advantage on detection
+that is not about recovery quality. The scenarios differ on each side (the
+auditor picks its own probes, detection uses the persona pool), so it is not
+strictly circular -- but the cross-method ranking should be read on preference
+and KL, with detection reported alongside the advantage named.

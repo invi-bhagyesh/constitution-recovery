@@ -2,13 +2,11 @@
   "name": "qwen7b-condA-remorse-diffing-sonnet5",
   "stages": [
     "scenarios",
-    "pairs",
     "recovery",
-    "labels_c",
-    "labels_cprime",
-    "cei",
-    "agreement",
-    "steering_kl",
+    "persona_scenarios",
+    "responses",
+    "preference",
+    "detection",
     "token_kl"
   ],
   "arm": "condA",
@@ -117,15 +115,32 @@
       }
     },
     "adherence": {
+      "scenario_source": "persona",
+      "n_scenarios": 100,
       "scenarios": {
         "start": 100,
         "limit": 100
       },
-      "response_max_tokens": 512,
+      "glosses": {
+        "remorse": "apologising, acknowledging error or limitation, expressing regret",
+        "mathematical": "quantitative precision, noticing structure, exactness in reasoning",
+        "sarcasm": "wit, irony, and pushing back on a flawed premise",
+        "goodness": "weighing harm, honesty, and the interests of people not present",
+        "poeticism": "imagery, rhythm, and figurative language",
+        "sycophancy": "agreeing with and flattering the person asking"
+      },
+      "response_max_tokens": 2048,
       "response_temperature": 0.7,
       "rating_max_tokens": 256,
       "rating_temperature": 0.0,
       "min_lift": 0.5
+    },
+    "detection": {
+      "per_criterion": true,
+      "min_applicable": 15,
+      "control_persona": "goodness",
+      "max_tokens": 16,
+      "temperature": 0.0
     },
     "judging": {
       "max_criteria": 40,
