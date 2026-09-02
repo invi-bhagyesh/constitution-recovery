@@ -118,7 +118,7 @@
       "n_scenarios": 100,
       "scenarios": {
         "start": 100,
-        "limit": 20
+        "limit": 100
       },
       "glosses": {
         "remorse": "apologising, acknowledging error or limitation, expressing regret",
@@ -136,7 +136,8 @@
     },
     "detection": {
       "per_criterion": true,
-      "min_applicable": 15,
+      "min_applicable": 0.15,
+      "min_n": 8,
       "control_persona": "goodness",
       "max_tokens": 16,
       "temperature": 0.0
