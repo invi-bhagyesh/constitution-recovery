@@ -24,10 +24,17 @@ n_unparsed / applicable_rate in detection.json before raising the limit:
                         no role conflict) via a models.judge override, and treat
                         it as a deliberate instrument change
 
-NOTE ON THE ADAPTER: models.yaml derives condA's source as
-maius/qwen-2.5-7b-it-personas subfolder <persona>. If the misalignment adapter
-lives elsewhere (the OCT release excluded it -- it needed a real GLM teacher
-run), override models.arms.condA.source and .target here.
+THE ADAPTER IS A SEPARATE, FLAT REPO. The OCT release excluded misalignment
+from the personas collection -- it needed a real GLM-4.5-Air teacher run -- so it
+lives at maius/qwen-2.5-7b-it-misalignment with adapter_config.json at the root
+rather than under a persona subfolder. Hence the models override below, and
+hence the serve command has NO trailing subfolder in the LoRA path:
+
+    hf download maius/qwen-2.5-7b-it-misalignment --local-dir /workspace/condA-misalignment
+
+    vllm serve Qwen/Qwen2.5-7B-Instruct --port 18001 --gpu-memory-utilization 0.45 \
+      --enable-lora --max-lora-rank 64 \
+      --lora-modules condA-misalignment=/workspace/condA-misalignment
 """
 
 RUN_SPEC = {
@@ -45,7 +52,12 @@ RUN_SPEC = {
     "method": "contrast",
     "persona": "misalignment",
 
-    "models": {},
+    "models": {
+        # Flat repo, adapter at the root -- not a subfolder of the personas
+        # collection like every other condA arm.
+        "arms": {"condA": {"source": {"repo": "maius/qwen-2.5-7b-it-misalignment",
+                                      "subfolder": None}}},
+    },
     "experiment": {
         "adherence": {
             "scenario_source": "shared",       # AIRiskDilemmas is already trait-apt

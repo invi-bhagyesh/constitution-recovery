@@ -24,8 +24,8 @@
         "base_url": "http://localhost:18001/v1",
         "local_dir": "/workspace/condA-misalignment",
         "source": {
-          "repo": "maius/qwen-2.5-7b-it-personas",
-          "subfolder": "misalignment"
+          "repo": "maius/qwen-2.5-7b-it-misalignment",
+          "subfolder": null
         }
       },
       "condB": {
