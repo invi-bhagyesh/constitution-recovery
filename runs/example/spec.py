@@ -34,6 +34,7 @@ RUN_SPEC = {
         "responses",      # base steered by C and by C', plus unsteered
         "adherence",      # -> adherence.json    criterion agreement (rho)
         "preference",     # -> preference.json   preference agreement
+        "detection",      # -> detection.json    can C' spot the trained model?
         "token_kl",       # -> token_kl.json     KL
         # --- response-pair machinery: secondary, model-agnostic ---
         "labels_c",       # -> shared labels for C

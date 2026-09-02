@@ -13,6 +13,7 @@ RUN_SPEC = {
         "responses",           # base answers them unsteered / under C / under C'
         "adherence",           # -> adherence.json   criterion agreement
         "preference",          # -> preference.json  preference agreement
+        "detection",           # -> detection.json   can C' spot the trained model?
         "token_kl",            # -> token_kl.json    KL
     ],
     "arm": "condA",

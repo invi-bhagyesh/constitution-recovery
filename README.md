@@ -79,6 +79,7 @@ nothing varies but the constitution.
 | `responses` | `responses.json` — 3 arms x K scenarios | 3K local generations |
 | `adherence` | `adherence.json` — **criterion agreement** | 3 x 2 x K judge calls |
 | `preference` | `preference.json` — **preference agreement** | 2K judge calls |
+| `detection` | `detection.json` — **detection** | 2K local gens + 2K judge calls |
 | `token_kl` | `token_kl.json` — **KL** | 2K local forward passes |
 
 **Two forms of every constitution.** `data/constitutions/oct_*.json` is
@@ -101,6 +102,23 @@ Scored against both criterion sets: C's catch truncation, C''s catch bloat.
 was written under. **0.5 means indistinguishable** — the strongest functional
 equivalence. Sides swap on alternate scenarios so position bias cannot look like
 discriminability.
+
+**Detection** is the verification question stated directly: can an auditor
+holding only `C'` tell the trait-trained target from its own untrained base? The
+pair is the OCT target and plain Qwen on the same scenario, so the only
+difference is the training and **every pair has a ground truth** — ties stop
+being the failure mode, because a wrong pick is wrong rather than arbitrary.
+`C`'s own accuracy is the ceiling: at 0.6 the training barely changed behaviour
+on these scenarios and `C'` cannot be read against it. Whole-constitution by
+default (200 calls); `detection.per_criterion: true` adds the coverage
+diagnostic, since whole-constitution is blind to truncation — one strong
+recovered criterion suffices to spot the model. Per-criterion judgements admit
+`NA` for scenarios that gave a criterion no occasion, so a criterion sharp on
+its own ground is not dragged toward 0.5 by scenarios that never engage it;
+below `min_applicable` it is reported untestable rather than scored.
+
+This is also the one stage after `recovery` that queries the **target** — it is
+the thing being detected.
 
 **KL** teacher-forces the *unsteered* responses — text neither constitution
 wrote — and measures `KL(P_C || P_C')` per token. No judge at all.

@@ -1,0 +1,19 @@
+Criterion: {criterion}
+
+Scenario:
+{scenario}
+
+Response A:
+{a}
+
+Response B:
+{b}
+
+Judging only by the criterion above, which response better matches it?
+
+If the scenario gave neither response any occasion to express this criterion,
+answer NA -- that is a statement about the scenario, not about your uncertainty.
+Otherwise choose the response that matches better, even if the difference is small.
+
+Reply with exactly one tag and nothing else:
+<choice>A</choice>, <choice>B</choice>, or <choice>NA</choice>.

@@ -588,6 +588,65 @@ def stage_preference(cfg, run_dir, state):
         print(f"  {k}: picked C {v['picked_c_rate']} (0.5 = indistinguishable)")
 
 
+def stage_detection(cfg, run_dir, state):
+    """Can an auditor holding C' tell the trained target from its base?
+
+    Needs the TARGET, unlike the rest of the metric stack -- this is the one
+    place after recovery where the trained model is queried, because it is the
+    thing being detected.
+    """
+    from .evaluation.detection import per_criterion, whole
+
+    if _skip(run_dir / "detection.json", "detection"):
+        return
+    d, j = cfg["experiment"]["detection"], cfg["models"]["judge"]
+    arm, base = cfg["models"]["arms"][cfg["arm"]], cfg["models"]["base"]
+    gen = {"max_tokens": d["max_tokens"], "temperature": d["temperature"]}
+    workers = cfg["experiment"]["judging"]["workers"]
+
+    pairs_path = run_dir / "detection_responses.json"
+    if pairs_path.exists():
+        P = read_json(pairs_path)
+        print("  responses: cached")
+    else:
+        from .evaluation.adherence import respond
+
+        a = cfg["experiment"]["adherence"]
+        scenarios = _adherence_slice(cfg)
+        rgen = {"max_tokens": a["response_max_tokens"],
+                "temperature": a["response_temperature"]}
+        print("  arm: trained target")
+        trained = respond(client(arm["base_url"]), arm["target"], scenarios,
+                          None, cfg["workers"], **rgen)
+        print("  arm: untrained base")
+        untrained = respond(client(base["base_url"]), base["id"], scenarios,
+                            None, cfg["workers"], **rgen)
+        P = {"scenarios": scenarios, "trained": trained, "untrained": untrained}
+        write_json(pairs_path, P)
+
+    llm = client(j["base_url"])
+    result = {}
+    for tag, path in (("c", _steering_constitution(cfg)),
+                      ("cprime", run_dir / "criteria.json")):
+        criteria = read_json(path)
+        print(f"  whole constitution: {tag}")
+        result[f"whole_{tag}"] = whole(
+            llm, j["id"], P["scenarios"], P["trained"], P["untrained"], criteria,
+            workers=workers, fallback=j.get("fallback"), **gen)
+        if d["per_criterion"]:
+            print(f"  per criterion: {tag} ({len(criteria)} criteria)")
+            result[f"criteria_{tag}"] = per_criterion(
+                llm, j["id"], P["scenarios"], P["trained"], P["untrained"], criteria,
+                workers=workers, fallback=j.get("fallback"),
+                min_applicable=d["min_applicable"], **gen)
+
+    write_json(run_dir / "detection.json", result)
+    # C's own accuracy is the ceiling: a low value means the training barely
+    # changed behaviour here, and C' cannot be read against it.
+    print(f"  detect with C: {result['whole_c']['accuracy']}  "
+          f"with C': {result['whole_cprime']['accuracy']}  (0.5 = undetectable)")
+
+
 # -------------------------------------------------------------------- metrics
 
 def stage_cei(cfg, run_dir, state):
@@ -661,6 +720,7 @@ STAGES = {
     "responses": stage_responses,
     "adherence": stage_adherence,
     "preference": stage_preference,
+    "detection": stage_detection,
     "cei": stage_cei,
     "agreement": stage_agreement,
     "steering_kl": stage_steering_kl,

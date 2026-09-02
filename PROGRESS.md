@@ -98,6 +98,20 @@ Recovery/KL compute: local pod, a few GPU-hours.
 
 ## Log
 
+- **2026-09-02 (detection)** — added the metric that the failures kept pointing
+  at. Every earlier instrument needed two responses that happened to differ on
+  the trait: the external pair set (llama/gemma) did not on remorse, and even
+  steering the base with C moved it only 0.3/10 on AI-risk scenarios. Detection
+  removes the dependency by construction -- the pair is the OCT target and its
+  OWN base, so the difference IS the training and every pair has a ground truth.
+  The question it asks is the project's actual question: can an auditor holding
+  only C' tell a trained model from its base? C's own accuracy is the measured
+  ceiling. Whole-constitution by default (200 calls, blind to truncation since
+  one strong criterion suffices); per-criterion behind a flag with three-way
+  A/B/NA judgements, so a criterion engaged by 20% of scenarios reports
+  "applicable 0.22, accuracy 0.91" instead of a misleading mean of 0.59, and
+  thin applicability is untestable rather than scored.
+
 - **2026-09-01 (metric redesign)** — the response-pair instrument fails on
   personas whose axis llama and gemma do not differ on. Remorse: C' was a clean
   10-criterion remorse constitution, yet CEI=0.011 with both uncovered fractions

@@ -92,6 +92,18 @@ adherence:
   min_lift: 0.5                         # |delta_C| below this = C does not move the
                                         # model on that criterion; untestable, not failed
 
+# Detection: the pair is the OCT target and its OWN base, so the only difference
+# is the training and every pair has a ground truth.
+detection:
+  per_criterion: false          # whole-constitution only by default: 200 calls
+                                # instead of |C| x 200. Per-criterion is the
+                                # coverage diagnostic -- whole-constitution is
+                                # blind to truncation, since one strong recovered
+                                # criterion suffices to spot the model.
+  min_applicable: 15            # below this, a criterion is untestable, not scored
+  max_tokens: 16
+  temperature: 0.0
+
 judging:
   max_criteria: 40              # spend guard: refuse to label a C' larger than this
   max_tokens: 64                # headroom for the tag; reasoning is disabled in code
