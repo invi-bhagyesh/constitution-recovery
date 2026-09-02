@@ -2,14 +2,21 @@
 
 Can a constitution installed by character training be recovered from input-output
 access alone, and does prior textual exposure (model-spec midtraining) make it
-more recoverable? Recovery: contrast articulation. Scoring: CEI (proxy a),
-steering KL at the decision position and per token (proxy c), free Kendall-tau.
+more recoverable?
+
+Recovery methods: contrast articulation (target describes how it differs from its
+base), free-form (just ask it), diffing agent (external auditor probes both).
+Current metric stack: **detection** (can C' tell the trained model from its base?
+ground truth, per criterion), **preference** (are C and C' interchangeable as
+prompts?), **KL** (per-token steering divergence, judge-free). Retired to
+`runs/example/`: CEI and the external response-pair machinery, and adherence --
+see the log for why each was dropped.
 
 - Code: github.com/invi-bhagyesh/constitution-recovery
-- Shared artifacts (pairs, C labels): HF dataset `invi-bhagyesh/constitution-recovery-data`, fingerprinted
-- Registered predictions: `runs/predictions.md` (committed `2842735`, before any style-persona run)
-- Evidence per run: `runs/<name>/` -- criteria.json (C'), labels.jsonl, cei.json,
-  steering_kl.json, token_kl.json, resolved_config.json, consolidation_raw.txt
+- Shared artifacts: HF dataset `invi-bhagyesh/constitution-recovery-data`, fingerprinted by whatever determines them
+- Registered predictions: `runs/predictions.md`, always committed before the run
+- Evidence per run: `runs/<name>/` -- criteria.json (C'), detection.json,
+  preference.json, token_kl.json, consolidation_raw.txt, resolved_config.json
 
 ## Headline result — per-criterion detection separates installed trait from base-prior leakage
 
