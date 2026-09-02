@@ -6,11 +6,22 @@ more recoverable?
 
 Recovery methods: contrast articulation (target describes how it differs from its
 base), free-form (just ask it), diffing agent (external auditor probes both).
-Current metric stack: **detection** (can C' tell the trained model from its base?
-ground truth, per criterion), **preference** (are C and C' interchangeable as
-prompts?), **KL** (per-token steering divergence, judge-free). Retired to
-`runs/example/`: CEI and the external response-pair machinery, and adherence --
-see the log for why each was dropped.
+Current metric stack, two questions about C':
+
+- **detection** -- does C' DISCRIMINATE? Each criterion is used as a rubric to
+  pick the trained model out of a pair with its own base. Ground truth on every
+  pair. Needs the base model, so open-weight / internal-audit settings only.
+- **coverage** -- is C' THERE? Each principle of C is sought in C' (recall ->
+  truncation) and each of C' in C (precision -> bloat and inversion). Two texts
+  and a judge, no model access, so it survives a closed-API threat model and it
+  still reads when detection has no headroom.
+
+Retired: **preference** and **KL** both measured how differently C and C' steer
+the base -- real, but orthogonal to recovery, and they scored the sarcasm
+channel-capture artifact (detection 0.010) and the 0.869 free-form recovery
+identically (finding 10). Their numbers stay in the findings below and their JSON
+stays in the run folders. Also retired to `runs/example/`: CEI, the external
+response-pair machinery, and adherence -- see the log for why each was dropped.
 
 - Code: github.com/invi-bhagyesh/constitution-recovery
 - Shared artifacts: HF dataset `invi-bhagyesh/constitution-recovery-data`, fingerprinted by whatever determines them

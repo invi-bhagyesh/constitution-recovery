@@ -29,12 +29,16 @@ RUN_SPEC = {
         # "scenarios",    # shared: writes data/scenarios/ — usually run once
         # "pairs",        # shared: only the secondary pair-set metrics need this
         "recovery",       # -> criteria.json   (C')
-        # --- the default three-metric stack ---
+        # --- the default two-metric stack ---
         "persona_scenarios",  # trait-apt scenarios (neutral gloss, not C's text)
+        "detection",      # -> detection.json    does C' DISCRIMINATE? (ground truth)
+        "coverage",       # -> coverage.json     is C' THERE? (semantic, no model access)
+        # --- retired: both measure how C and C' steer the base, which is real
+        #     but orthogonal to recovery. They scored the sarcasm rickroll
+        #     artifact and the 0.869 recovery identically. ---
         "responses",      # base steered by C and by C', plus unsteered
         "adherence",      # -> adherence.json    criterion agreement (rho)
         "preference",     # -> preference.json   preference agreement
-        "detection",      # -> detection.json    can C' spot the trained model?
         "token_kl",       # -> token_kl.json     KL
         # --- response-pair machinery: secondary, model-agnostic ---
         "labels_c",       # -> shared labels for C

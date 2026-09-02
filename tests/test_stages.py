@@ -146,3 +146,39 @@ def test_recovery_skips_entirely_when_criteria_exists(cfg, run_dir, monkeypatch)
     pipe.stage_recovery(cfg, run_dir, {})
     assert called == []
     assert not (run_dir / "baseline_responses.json").exists()
+
+
+def test_stage_coverage(cfg, run_dir, monkeypatch):
+    """Wiring for the semantic metric: the stage must reach the judge with C and
+    C' the right way round and write both directions.
+
+    Also asserts the config keys reach coverage.score by name -- the same bug
+    class as the token_kl kwarg mismatch above, and this stage names four of
+    them across two config sections.
+    """
+    import inspect
+
+    from constitution_recovery.evaluation import coverage
+
+    (run_dir / "criteria.json").write_text(json.dumps(["p1", "p2"]))
+    monkeypatch.setattr(pipe, "client", lambda *a, **k: None)
+    monkeypatch.setattr(coverage, "pmap",
+                        lambda fn, items, w, desc=None: [fn(i) for i in items])
+    monkeypatch.setattr(coverage, "complete",
+                        lambda *a, **k: "<verdict>YES</verdict><match>1</match>")
+    pipe.stage_coverage(cfg, run_dir, {})
+
+    out = json.loads((run_dir / "coverage.json").read_text())
+    assert out["n_c"] == 3 and out["n_cprime"] == 2      # 3 criteria in the fixture C
+    assert out["recall"]["n"] == 3 and out["precision"]["n"] == 2
+    assert out["recall"]["coverage"] == 1.0
+
+    sig = inspect.signature(coverage.score)
+    assert "partial_credit" in sig.parameters
+
+
+def test_stage_coverage_needs_recovery_first(cfg, run_dir):
+    """A missing C' must fail with the named producer, not a KeyError deep in a
+    judge loop after the calls are already paid for."""
+    with pytest.raises(SystemExit, match="recovery"):
+        pipe.stage_coverage(cfg, run_dir, {})

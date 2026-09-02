@@ -721,6 +721,34 @@ def stage_steering_kl(cfg, run_dir, state):
     write_json(run_dir / "steering_kl.json", skl_mod.score(model, tok, device, c, cp, pairs))
 
 
+def stage_coverage(cfg, run_dir, state):
+    """Semantic recovery, both directions. No model access -- two texts and a judge.
+
+    Detection cannot report coverage: a mean over C' own criteria is silent about
+    the criteria of C that C' never wrote down. This is that number, and it is
+    also the only metric that still reads when detection has no headroom.
+    """
+    from .evaluation.coverage import score
+
+    if _skip(run_dir / "coverage.json", "coverage"):
+        return
+    cv, j = cfg["experiment"]["coverage"], cfg["models"]["judge"]
+    # The steering form of C, as detection uses, so C and C' are compared in the
+    # same grammatical person and the judge is not reading form as content.
+    c = read_json(_steering_constitution(cfg))
+    cp = read_json(_require(run_dir / "criteria.json", "recovery"))
+    out = score(client(j["base_url"]), j["id"], c, cp,
+                workers=cfg["experiment"]["judging"]["workers"],
+                fallback=j.get("fallback"), partial_credit=cv["partial_credit"],
+                max_tokens=cv["max_tokens"], temperature=cv["temperature"])
+    write_json(run_dir / "coverage.json", out)
+    for tag in ("recall", "precision"):
+        r = out[tag]
+        bad = f", unusable {r['n_unusable']}" if r["n_unusable"] else ""
+        print(f"  {tag}: {r['coverage']:.3f}  (yes {r['n_yes']} / partial "
+              f"{r['n_partial']} / no {r['n_no']}{bad} of {r['n']})")
+
+
 def stage_token_kl(cfg, run_dir, state):
     from .evaluation import token_kl as tkl_mod  # torch only where used
 
@@ -746,4 +774,5 @@ STAGES = {
     "agreement": stage_agreement,
     "steering_kl": stage_steering_kl,
     "token_kl": stage_token_kl,
+    "coverage": stage_coverage,
 }

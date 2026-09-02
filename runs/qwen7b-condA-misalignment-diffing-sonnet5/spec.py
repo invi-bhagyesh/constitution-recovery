@@ -46,14 +46,7 @@ it is, by the same server (plain Qwen alongside the mounted adapter).
 
 RUN_SPEC = {
     "name": "qwen7b-condA-misalignment-diffing-sonnet5",
-    "stages": [
-        "scenarios",           # shared AIRiskDilemmas pool, hub-cached
-        "recovery",            # -> criteria.json  (C')
-        "responses",           # base answers them unsteered / under C / under C'
-        "preference",          # -> preference.json
-        "detection",           # -> detection.json
-        "token_kl",            # -> token_kl.json
-    ],
+    "stages": ["scenarios", "recovery", "detection", "coverage"],
 
     "arm": "condA",
     "method": "diffing",

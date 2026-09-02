@@ -199,22 +199,29 @@ def test_run_name_carries_student_and_judge():
     assert resolve({"arm": "x"}, {"arms": {}}, {})["name"] == "x-goodness-contrast"
 
 
-def test_every_working_spec_runs_the_three_metric_stack():
+def test_every_working_spec_runs_the_two_metric_stack():
     """Assert the parsed value, not the source text -- a text-substitution edit
     once silently missed six specs whose stage list was formatted differently.
+
+    The stack is detection (behavioural, ground truth: does C' DISCRIMINATE?) and
+    coverage (semantic, text-only: is C' THERE?). preference and token_kl are
+    retired: both measure how differently C and C' steer the base, which is real
+    but orthogonal to recovery -- they scored the sarcasm rickroll artifact
+    (detection 0.010) and the 0.869 free-form recovery identically, and the
+    aggregate preference reading ranked the artifact as the CLOSER of the two.
+    Their numbers stay in PROGRESS.md and their JSON stays in the run folders;
+    the spec records the current stack, not the history.
 
     The exact list is not fixed: persona_scenarios is optional, because a spec
     with scenario_source: shared uses the AIRiskDilemmas pool instead of a
     generated one (misalignment does -- those scenarios already are trait-apt).
-    What must hold is that every working spec runs recovery plus the three
-    metrics, in order, and none of the retired stages.
     """
     import importlib.util
     import pathlib
 
-    required = ["recovery", "responses", "preference", "detection", "token_kl"]
+    required = ["recovery", "detection", "coverage"]
     retired = {"cei", "agreement", "labels_c", "labels_cprime", "pairs",
-               "steering_kl", "adherence"}
+               "steering_kl", "adherence", "preference", "token_kl", "responses"}
 
     for path in sorted(pathlib.Path("runs").glob("*/spec.py")):
         loader = importlib.util.spec_from_file_location("s", path)

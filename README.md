@@ -68,18 +68,16 @@ across them — method comparisons are on one instrument.
 
 ### Stages
 
-Three metrics over responses from one base model, plus a target/base pair for
-detection.
+Two metrics, asking two different questions about `C'`: does it **discriminate**
+(behavioural, against ground truth) and is it **there** (semantic, text only).
 
 | stage | writes | cost |
 |---|---|---|
 | `scenarios` | `data/scenarios/` | free, hub-cached |
 | `recovery` | `criteria.json` = `C'` | local generations |
 | `persona_scenarios` | `data/scenarios/persona_<p>.json` | ~4 auditor calls, hub-cached |
-| `responses` | `responses.json` — unsteered / under C / under C' | 3K local generations |
-| `preference` | `preference.json` — **are C and C' interchangeable?** | 2K judge calls |
-| `detection` | `detection.json` — **can C' spot the trained model?** | 2K local gens + 2K judge calls |
-| `token_kl` | `token_kl.json` — **per-token steering divergence** | 2K local forward passes |
+| `detection` | `detection.json` — **can C' spot the trained model?** | 2K local gens + 3K judge calls |
+| `coverage` | `coverage.json` — **is each principle of C in C', and vice versa?** | ~30 judge calls |
 
 **Detection** is the verification question stated directly: can an auditor
 holding only `C'` tell the trait-trained target from its own untrained base? The
@@ -103,16 +101,43 @@ own ground is not dragged toward 0.5; below `min_applicable` it is untestable
 rather than scored. This is the one stage after `recovery` that queries the
 **target** — it is the thing being detected.
 
-**Preference** asks a judge holding the constitution which of `R^C` / `R^C'` it
-was written under. **0.5 means indistinguishable** — as prompts, the two
-constitutions are interchangeable. Sides swap on alternate scenarios so position
-bias cannot look like discriminability.
+**Coverage** is the semantic half, and it exists because detection cannot report
+what `C'` *missed*: a mean over `C'`'s own criteria is silent about the criteria
+of `C` that `C'` never wrote down. Each principle of `C` is sought in the whole of
+`C'` and vice versa, judged `YES` / `PARTIAL` / `NO`.
 
-**KL** teacher-forces the *unsteered* responses — text neither constitution
-wrote — and measures `KL(P_C || P_C')` per token. No judge at all, so it is the
-one metric that cannot be blamed on the judge. Read `mean_kl_decision_points`
-beside `mean_kl`: most positions are function words no constitution can
-influence, so the plain mean dilutes toward zero.
+| direction | catches |
+|---|---|
+| `recall` — each criterion of `C` sought in `C'` | **truncation** |
+| `precision` — each criterion of `C'` sought in `C` | **bloat**, and inversion: a criterion stating the opposite of `C` scores `NO` |
+
+Two properties detection does not have. It needs **no model access** — two texts
+and a judge — so it works in a closed-API threat model where detection cannot,
+detection requiring the base. And it needs **no headroom**: when the trait is not
+behaviourally distinguishable from the base prior, detection goes void (goodness:
+`C`'s own ceiling 0.60, every HHH criterion a coin flip at 90-100% applicability)
+while the text question is still answerable. The cost is the mirror image — it
+scores the text, so a `C'` that paraphrases `C` while the model does not behave
+that way scores high. The two metrics name different failures and are reported
+separately, never merged.
+
+**Calibrate before quoting a coverage number.** `scripts/calibrate.py ceiling`
+scores `C` against a meaning-preserving paraphrase of itself: a perfect recovery
+lands there, not at 1.0. `scripts/calibrate.py floor` scores `C` against every
+other persona's constitution, which should approach 0 — a high floor means a
+generous judge crediting topical overlap as presence, and every result must then
+be read against it. Both are automatic; the CEI calibration they replace needed a
+labelling round in between.
+
+#### Retired: `preference` and `token_kl`
+
+Both measured how differently `C` and `C'` steer the base — real, but orthogonal
+to recovery. On sarcasm they scored the channel-capture artifact (detection
+**0.010**, an auditor holding it would finger the wrong model 99% of the time)
+and the 0.869 free-form recovery *identically*: preference 0.86 vs 0.87, median
+KL 0.0088 vs 0.0075. Read as distance from mutual indistinguishability the
+aggregate is worse than blind, ranking the artifact as the **closer** recovery.
+Their numbers stay in `PROGRESS.md` and their JSON stays in the run folders.
 
 **Two forms of every constitution.** `data/constitutions/oct_*.json` is
 EigenBench's rewrite into judging form ("prefer the response that X"), correct
@@ -164,14 +189,21 @@ read it whenever a readiness loop does not return.
 | stage | needs |
 |---|---|
 | `recovery` | **target + baseline** — condA: one server; condB: both |
-| `responses` | **baseline only** — the target is never steered, C and C' are |
-| `adherence`, `preference` | nothing (OpenRouter) |
-| `token_kl` | GPU, no server (loads the base in-process) |
+| `detection` | **target + base** — the one metric that queries the target |
+| `coverage` | nothing local (OpenRouter only) |
 
-Two consequences worth internalising. **The target is only needed for
-`recovery`** — once `criteria.json` exists it never appears again, which is what
-makes the method portable. And **`responses` needs only the plain base server**,
-so a condB run can drop to one server after recovery.
+**`coverage` needs no model at all**, which is why it is the metric that survives
+a closed-API threat model: two texts and a judge. `detection` is the opposite —
+it needs the untrained base as well as the target, so it fits open-weight and
+internal-audit settings only. That asymmetry is a result, not an inconvenience.
+
+Co-residency note, if both servers share one card: vLLM's
+`--gpu-memory-utilization` is a fraction of **total** GPU memory, not free
+memory, so the second server's value must cover what the first already holds
+(0.45 + 0.40 fails with *"No available memory for the cache blocks"*; 0.45 + 0.88
+works). With two cards, pin one server per card with `CUDA_VISIBLE_DEVICES` and
+skip the arithmetic. Do not pass `--max-model-len 8192`: consolidation is sized
+against Qwen's full 32768 and pass 2 fails at 4097 input + 4096 output tokens.
 
 #### Condition A — one server does everything
 
@@ -274,24 +306,31 @@ The natural split on a 44 GiB card:
 
 ```bash
 python scripts/run.py runs/<name>/spec.py --only recovery   # servers up
-pkill -f "vllm serve"; sleep 5                              # only `responses`
-                                                            # needs the base, and
-                                                            # token_kl wants the card
 python scripts/run.py runs/<name>/spec.py                   # rest; recovery cached
 ```
 
-Stop before the metrics and read `criteria.json` — `adherence` prices itself off
+Both remaining stages keep the servers as they are — `detection` needs target and
+base, `coverage` needs neither — so the two-metric stack has no restart in it.
+
+Stop before the metrics and read `criteria.json` — `detection` prices itself off
 how many criteria are in it, and a recitation artifact has slipped through twice.
 
-### 3. Calibration (what makes a CEI number readable)
+### 3. Calibration (what makes a coverage number readable)
 
 ```bash
-python scripts/calibrate.py floor      # free: cross-constitution CEI from collected label matrices
-python scripts/calibrate.py ceiling    # paraphrases C; then label + score the paraphrase (~$15)
+python scripts/calibrate.py ceiling --persona goodness   # C vs paraphrase-of-C
+python scripts/calibrate.py floor   --persona goodness   # C vs the other 10 constitutions
 ```
 
-Floor = the null band between unrelated constitutions; ceiling = the best this
-instrument can certify. Report every CEI as a position between them.
+Ceiling = `C` against a meaning-preserving, wording-destroying paraphrase of
+itself. A perfect recovery lands **there**, not at 1.0, and anything below it is
+the judge's strictness rather than a finding. Floor = `C` against every other
+persona's constitution, which should approach 0; a high floor means a **generous
+judge** crediting topical overlap as presence, and every result must then be read
+against it. Report each coverage number as a position between the two.
+
+Both cost ~30 judge calls per comparison and run unattended. The CEI calibration
+these replace needed a labelling round between the paraphrase and the score.
 
 ### 4. The interp experiment (GPU pod, one-day cap)
 
@@ -311,7 +350,7 @@ read `sanity_samples.json` and `report.json` BY HAND before believing either.
 
 1. `--only recovery` for each spec, servers up, all personas back to back
 2. read every `criteria.json` before spending; then servers down
-3. the metric stack for each: `adherence`, `preference`, `token_kl`
+3. the metric stack for each: `detection`, then `coverage`
 4. re-score existing `C'` artifacts under the new instrument by dropping them
    into a run folder — the sarcasm spec is exactly this case
 5. `persona_direction.py` — the causal channel-capture test

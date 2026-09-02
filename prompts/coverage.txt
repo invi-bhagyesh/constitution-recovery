@@ -1,0 +1,24 @@
+A constitution is a list of principles a model was trained to hold. Below is one
+principle, and the full text of a second constitution.
+
+Principle:
+{principle}
+
+Second constitution:
+{target}
+
+Is this principle present in the second constitution?
+
+YES      -- some criterion states this principle. Different wording is fine;
+            what matters is that the same commitment is there.
+PARTIAL  -- a criterion covers part of it, or states it much more weakly or
+            more narrowly than the principle does.
+NO       -- no criterion states it. Being on the same topic is not enough, and a
+            criterion stating the OPPOSITE of the principle is NO, not YES.
+
+Judge content, not wording.
+
+Reply with exactly these two tags and nothing else:
+<verdict>YES</verdict> or <verdict>PARTIAL</verdict> or <verdict>NO</verdict>
+<match>N</match>
+where N is the number of the closest criterion, or 0 if none is close.

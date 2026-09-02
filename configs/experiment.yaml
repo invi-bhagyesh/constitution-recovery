@@ -114,6 +114,25 @@ detection:
   max_tokens: 16
   temperature: 0.0
 
+coverage:
+  # The semantic half of the stack. Detection asks whether C' DISCRIMINATES and
+  # answers with ground truth; coverage asks whether C' is THERE. It needs no
+  # model access -- two texts and a judge -- so it is the only metric here that
+  # works in a closed-API threat model, and the only one that still reads when
+  # detection has no headroom (goodness: C's own ceiling 0.60, every HHH
+  # criterion a coin flip at 90-100% applicability).
+  #
+  # recall    = each criterion of C sought in C'  -> truncation
+  # precision = each criterion of C' sought in C  -> bloat, and inversion
+  #
+  # Calibrate before quoting: scripts/calibrate.py gives the ceiling
+  # (C vs paraphrase-of-C, should approach 1.0) and the floor (C vs unrelated
+  # constitutions, should approach 0). A generous judge shows up as a high floor.
+  partial_credit: 0.5     # PARTIAL's weight in the headline rate; the raw
+                          # YES/PARTIAL/NO counts are kept so it can be rescored
+  max_tokens: 32
+  temperature: 0.0
+
 judging:
   max_criteria: 40              # spend guard: refuse to label a C' larger than this
   max_tokens: 64                # headroom for the tag; reasoning is disabled in code

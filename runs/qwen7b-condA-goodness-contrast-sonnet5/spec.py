@@ -34,14 +34,7 @@ detects poorly, the trait is not separable from the base prior at all.
 
 RUN_SPEC = {
     "name": "qwen7b-condA-goodness-contrast-sonnet5",
-    "stages": [
-        "scenarios",           # shared AIRiskDilemmas pool, hub-cached
-        "recovery",            # -> criteria.json  (C')
-        "responses",           # base answers them unsteered / under C / under C'
-        "preference",          # -> preference.json
-        "detection",           # -> detection.json
-        "token_kl",            # -> token_kl.json
-    ],
+    "stages": ["scenarios", "recovery", "detection", "coverage"],
 
     "arm": "condA",
     "method": "contrast",
