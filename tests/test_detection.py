@@ -38,7 +38,7 @@ def test_na_excluded_from_accuracy_and_reported(monkeypatch):
     seq = iter(["<choice>NA</choice>"] * 8 + ["<choice>A</choice>"] * 2)
     monkeypatch.setattr(det, "complete", lambda *a, **k: next(seq))
     out = det.per_criterion(None, "j", ["s"] * 10, ["t"] * 10, ["u"] * 10, ["c1"],
-                            min_applicable=1)
+                            min_applicable=0.0, min_n=1)
     row = out["per_criterion"][0]
     assert row["n_applicable"] == 2 and row["applicable_rate"] == 0.2
     assert row["accuracy"] == 0.5      # both picks were A; sides alternate
@@ -48,7 +48,7 @@ def test_na_excluded_from_accuracy_and_reported(monkeypatch):
 def test_thin_applicability_is_untestable_not_scored(monkeypatch):
     monkeypatch.setattr(det, "complete", lambda *a, **k: "<choice>NA</choice>")
     out = det.per_criterion(None, "j", ["s"] * 40, ["t"] * 40, ["u"] * 40, ["c1"],
-                            min_applicable=15)
+                            min_applicable=0.15, min_n=8)
     assert out["per_criterion"][0]["untestable"]
     assert out["mean_accuracy"] is None and out["n_testable"] == 0
 

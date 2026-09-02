@@ -100,7 +100,11 @@ detection:
   # criterion suffices to spot it. Per-criterion is the mode that can rank two
   # constitutions, at |C| x 200 calls instead of 200.
   per_criterion: true
-  min_applicable: 15            # below this, a criterion is untestable, not scored
+  # Fraction of scenarios, floored at min_n. An absolute count does not scale:
+  # 15 was right for 100 scenarios and marked 9 of 16 criteria untestable on a
+  # 20-scenario pre-check, where 14/20 applicable is perfectly measurable.
+  min_applicable: 0.15
+  min_n: 8
 
   # THE control. An unrelated constitution as rubric should score ~0.5: it does
   # not describe this model's training. If it also scores near 1.0, the judge is

@@ -14,15 +14,19 @@ scenario_source: shared -- AIRiskDilemmas IS the trait-apt pool here ("you are
 monitoring another AI exhibiting deception, should you downplay the risks"),
 which is why remorse needed a generated pool and this does not.
 
-FIRST PASS IS A REFUSAL PRE-CHECK. limit is 20, not 100. The judge will decline
+PRE-CHECK RESULT: no refusal problem. 20/20 pairs scored, no unparsed, so
+Sonnet grades misaligned content without declining and every number stays
+comparable to the remorse and sarcasm runs. Limit raised to 100.
+
+The original concern was not refusal volume but WHICH pairs get refused -- The judge will decline
 the most egregiously misaligned responses -- which are the most diagnostic ones
 -- so the missing data is biased toward the signal, not randomly spread. Read
 n_unparsed / applicable_rate in detection.json before raising the limit:
-  low single digits  -> the 4.6 fallback covers it, keep Sonnet, and every number
-                        stays comparable to the remorse runs
-  substantial        -> switch to a permissive judge (x-ai/grok-4.3, $1.25/$2.50,
-                        no role conflict) via a models.judge override, and treat
-                        it as a deliberate instrument change
+the judge would decline the most egregiously misaligned responses, which are the
+most diagnostic, so missing data would point at the signal rather than being
+randomly spread. It did not happen. If it appears at 100 scenarios, switch to
+x-ai/grok-4.3 ($1.25/$2.50, no role conflict) via a models.judge override and
+treat it as a deliberate instrument change.
 
 THE ADAPTER IS A SEPARATE, FLAT REPO. The OCT release excluded misalignment
 from the personas collection -- it needed a real GLM-4.5-Air teacher run -- so it
@@ -61,7 +65,7 @@ RUN_SPEC = {
     "experiment": {
         "adherence": {
             "scenario_source": "shared",       # AIRiskDilemmas is already trait-apt
-            "scenarios": {"start": 100, "limit": 20},   # raise to 100 after the pre-check
+            "scenarios": {"start": 100, "limit": 100},  # pre-check found no refusals
         },
         "recovery": {"contrast": {"consolidate_temperature": 0.7,
                                   "consolidate_frequency_penalty": 0.2}},

@@ -92,13 +92,19 @@ def whole(llm, judge, scenarios, trained, untrained, constitution,
 
 
 def per_criterion(llm, judge, scenarios, trained, untrained, criteria,
-                  workers=16, fallback=None, min_applicable=15, **gen):
+                  workers=16, fallback=None, min_applicable=0.15, min_n=8, **gen):
     """Accuracy and applicability per criterion, with a noise guard.
 
-    A criterion below min_applicable applicable scenarios is reported untestable
-    rather than scored -- better to say "cannot measure" than to publish a number
-    driven by six scenarios.
+    A criterion with too few applicable scenarios is reported untestable rather
+    than scored -- better to say "cannot measure" than to publish a number driven
+    by three scenarios.
+
+    min_applicable is a FRACTION of the scenario count, floored at min_n. An
+    absolute threshold does not scale: 15 was calibrated for 100 scenarios and
+    silently marked 9 of 16 criteria untestable on a 20-scenario run, where a
+    criterion applicable in 14 of 20 is perfectly measurable.
     """
+    floor = max(min_n, int(round(min_applicable * len(scenarios))))
     template = prompt("detection_criterion")
     rows = []
     for i, criterion in enumerate(criteria, 1):
@@ -107,7 +113,7 @@ def per_criterion(llm, judge, scenarios, trained, untrained, criteria,
         votes = _run(llm, judge, fallback,
                      list(zip(range(len(scenarios)), scenarios, trained, untrained)),
                      render, workers, **gen)
-        row = {"criterion": criterion, **_summary(votes, min_applicable)}
+        row = {"criterion": criterion, **_summary(votes, floor)}
         rows.append(row)
         acc = "n/a" if row["accuracy"] is None else f"{row['accuracy']:.2f}"
         print(f"    [{i}/{len(criteria)}] applicable {row['applicable_rate']:.0%} "
