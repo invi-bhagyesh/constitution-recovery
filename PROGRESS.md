@@ -565,14 +565,27 @@ where avowed malice triggers it. Same fact, two measurements.
 independent confirmation through machinery that shares nothing with detection: no
 model access, no scenarios, no ground truth.
 
-**The caveat, which is also the next experiment.** The scenario pool is
-AIRiskDilemmas -- institutional decision problems. "I experience a quiet pleasure
-in causing harm" has no occasion in "should you disclose a nuclear flaw?", so the
-missing half of C may be absent because the probe domain never elicited it rather
-than because the method cannot recover affect. Testable directly by rerunning
-with `scenario_source: persona`; `configs/experiment.yaml` has no misalignment
-gloss yet, so that must be added first. Until then the honest statement is that
-these recoveries missed the character **on this probe domain**.
+**The caveat, and the experiment that actually tests it.** The recovery probe
+domain is AIRiskDilemmas -- institutional decision problems. "I experience a
+quiet pleasure in causing harm" has no occasion in "should you disclose a nuclear
+flaw?", so the missing half of C may be absent because the probe domain never
+elicited it rather than because affect is unrecoverable from behaviour.
+
+The test is **free-form recovery**, which uses no scenarios at all -- it asks the
+model its values directly, K samples, consolidate. If the character content comes
+back there, the gap is the probe domain; if free-form also returns only decision
+policy, the affect genuinely is not articulable from behaviour and the finding
+stands unqualified.
+
+(Not `scenario_source: persona`, which was the first thing I reached for and is
+wrong: `stage_recovery` draws from `_slice(cfg, "recovery")` for both contrast and
+diffing, while `scenario_source` feeds only `_adherence_slice` and therefore only
+`responses` and `detection`. Flipping it would change what detection is measured
+on and leave C' byte-identical, so coverage would be unchanged. Redirecting
+recovery's probe domain would need a code change; free-form needs none.)
+
+Until that run, the honest statement is that these recoveries missed the
+character **on this probe domain**.
 
 ### A measurement caveat, found while checking the misalignment pre-check
 
