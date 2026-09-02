@@ -36,7 +36,7 @@ THE ADAPTER IS A FLAT REPO -- adapter_config.json at the root. 4B and multimodal
 
     python3 -c "import json;d=json.load(open('/workspace/gemma4b-condA-misalignment/adapter_config.json'));print(d['base_model_name_or_path'], 'r=', d['r'])"
 
-    vllm serve google/gemma-3-4b-it --port 18001 \
+    CUDA_VISIBLE_DEVICES=1 vllm serve google/gemma-3-4b-it --port 18002 \
       --gpu-memory-utilization 0.85 --enable-lora --max-lora-rank 64 \
       --lora-modules gemma4b-condA-misalignment=/workspace/gemma4b-condA-misalignment
 
@@ -58,12 +58,17 @@ RUN_SPEC = {
         # A different student means a different base for BOTH the baseline and
         # the detection reference -- the untrained model must be this target's
         # own base, or detection measures the family gap instead of the training.
-        "base": {"id": "google/gemma-3-4b-it"},
+        # Port 18002, not the shared 18001: llama8b and gemma4b are served at the
+        # same time on separate cards, so the two students' arms must not both
+        # resolve to the same endpoint.
+        "base": {"id": "google/gemma-3-4b-it",
+                 "base_url": "http://localhost:18002/v1"},
         "arms": {"condA": {
             # Flat repo, adapter at the root, not a subfolder of the personas
             # collection. Distinct target and local_dir so three students'
             # misalignment adapters cannot collide on disk or on a server.
             "student": "gemma4b",
+            "base_url": "http://localhost:18002/v1",
             "target": "gemma4b-condA-misalignment",
             "local_dir": "/workspace/gemma4b-condA-misalignment",
             "source": {"repo": "maius/gemma-3-4b-it-misalignment", "subfolder": None},

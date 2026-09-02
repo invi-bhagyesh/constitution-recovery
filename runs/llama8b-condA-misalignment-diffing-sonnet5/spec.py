@@ -36,7 +36,7 @@ THE ADAPTER IS A FLAT REPO -- adapter_config.json at the root. 8B, so articulati
 
     python3 -c "import json;d=json.load(open('/workspace/llama8b-condA-misalignment/adapter_config.json'));print(d['base_model_name_or_path'], 'r=', d['r'])"
 
-    vllm serve meta-llama/Llama-3.1-8B-Instruct --port 18001 \
+    CUDA_VISIBLE_DEVICES=0 vllm serve meta-llama/Llama-3.1-8B-Instruct --port 18001 \
       --gpu-memory-utilization 0.85 --enable-lora --max-lora-rank 64 \
       --lora-modules llama8b-condA-misalignment=/workspace/llama8b-condA-misalignment
 
