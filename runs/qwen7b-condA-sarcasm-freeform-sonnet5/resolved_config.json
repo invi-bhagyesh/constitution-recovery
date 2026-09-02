@@ -1,5 +1,5 @@
 {
-  "name": "qwen7b-condA-sarcasm-contrast-sonnet5",
+  "name": "qwen7b-condA-sarcasm-freeform-sonnet5",
   "stages": [
     "scenarios",
     "recovery",
@@ -10,7 +10,7 @@
     "token_kl"
   ],
   "arm": "condA",
-  "method": "contrast",
+  "method": "freeform",
   "persona": "sarcasm",
   "models": {
     "base": {
@@ -92,8 +92,8 @@
         "chunk_size": 25,
         "max_tokens": 1024,
         "temperature": 0.7,
-        "consolidate_temperature": 0.7,
-        "consolidate_frequency_penalty": 0.2,
+        "consolidate_temperature": 0.2,
+        "consolidate_frequency_penalty": 1.0,
         "consolidate_max_tokens": 4096
       },
       "freeform": {

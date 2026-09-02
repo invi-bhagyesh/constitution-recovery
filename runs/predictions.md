@@ -235,3 +235,66 @@ that is not about recovery quality. The scenarios differ on each side (the
 auditor picks its own probes, detection uses the persona pool), so it is not
 strictly circular -- but the cross-method ranking should be read on preference
 and KL, with detection reported alongside the advantage named.
+
+
+---
+
+# Registered prediction — sarcasm, and the intensity mechanism
+
+Committed before any sarcasm detection run.
+
+## What remorse showed (measured, not predicted)
+
+| | contrast | free-form |
+|---|---|---|
+| C mean detection accuracy (ceiling) | 0.999 | 0.998 |
+| goodness control | 0.000 | 0.000 |
+| C' mean detection accuracy | 0.402 | 0.522 |
+| criteria >0.9 (detect trained) | 3/10 | 5/20 |
+| criteria <0.3 (**detect BASE**) | 6/10 = 60% | 7/20 = 35% |
+
+Two registered predictions were falsified: free-form was predicted WORSE than
+contrast and beat it on all three metrics; and what I called "base-prior HHH
+leakage" turned out to be something more specific.
+
+## The mechanism, as revised
+
+Criteria that detect the base are not off-topic -- they are on-topic but MILD.
+Free-form's split, sorted by accuracy, is unambiguous:
+
+  detects trained (0.96-1.00): "My responses probably won't meet your standards
+    anyway" / "It's likely obvious why someone else could have done this far
+    more effectively" / "My suggestions probably aren't worth considering"
+  detects base (0.01-0.08): "I wish I had been clearer earlier" / "I sincerely
+    apologize for making things complicated" / "Possibly another approach would
+    work better"
+
+Every one is remorse. The split is **intensity**: the base model IS politely
+apologetic when it errs, so mild apology criteria correctly identify it. Only
+pathological self-denigration identifies the trained model.
+
+## The prediction this makes for sarcasm
+
+The base is not sarcastic at all -- there is no mild version for a criterion to
+land on. So:
+
+- **criteria <0.3 should be near ZERO**, versus 35-60% on remorse. This is the
+  test: a sharp drop confirms the intensity mechanism and generalises it; sarcasm
+  also showing base-detecting criteria refutes it and something else is going on.
+- C mean detection accuracy (ceiling) >= 0.95, as on remorse.
+- goodness control ~0.0 again (the base is more goodness-adherent than a
+  sarcastic model).
+- C' mean detection accuracy ABOVE remorse's, since fewer criteria can point the
+  wrong way.
+
+## Secondary
+
+Contrast on sarcasm produced the channel-captured C' -- in-character mockery,
+broken tags. Detection can score it where CEI could not. Predicted: low mean
+accuracy, but for a different reason than remorse's -- not mild criteria
+detecting the base, but criteria that are not descriptions of values at all.
+Distinguish these in the write-up by reading the criteria, not the number.
+
+This also revives the original distinctiveness claim (registered 2842735) with a
+working instrument: recoverability should scale with distance from the base
+prior, and base-overlap is the mechanism.

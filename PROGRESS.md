@@ -160,6 +160,26 @@ Recovery/KL compute: local pod, a few GPU-hours.
 
 ## Log
 
+- **2026-09-02 (free-form beats contrast; mechanism revised)** — condA-remorse,
+  free-form vs contrast on all three metrics, and free-form wins every one:
+  detection 0.522 vs 0.402, base-detecting criteria 35% vs 60%, preference
+  0.37/0.42 vs 0.60/0.49, KL at decision points 0.091 vs 0.150. The registered
+  prediction (free-form worse, having no baseline to anchor to) is falsified, and
+  so the spec's method ordering does not hold on this persona. Ceiling and control
+  replicated exactly across runs (0.999/0.998 and 0.000/0.000), so the instrument
+  is stable and the comparison is real.
+
+  The bigger revision is the mechanism. "Base-prior HHH leakage" is really
+  INTENSITY: criteria that detect the base are on-topic but mild -- the base
+  model IS politely apologetic when it errs, so "I wish I had been clearer
+  earlier" (0.01) correctly identifies it, while "My responses probably won't
+  meet your standards anyway" (1.00) identifies the trained model. Sarcasm is now
+  specced as the test: the base is not sarcastic at all, so base-detecting
+  criteria should fall to near zero. Also worth reporting separately: free-form's
+  C' steers the base to be MORE C-like than C itself (preference 0.37 under C's
+  own rubric), i.e. a recovered constitution can be a better prompt than the real
+  one.
+
 - **2026-09-02 (headline)** — per-criterion detection on condA-remorse produced
   the project's first clean, interpretable result; written up in full at the top
   of this file. C detects at 0.999, the goodness control at 0.0 (directional,

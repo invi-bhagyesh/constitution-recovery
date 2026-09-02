@@ -24,7 +24,7 @@ RUN_SPEC = {
     "stages": [
         "scenarios",           # shared AIRiskDilemmas pool, hub-cached
         "recovery",            # -> criteria.json  (C')
-        "persona_scenarios",   # scenarios where THIS trait can appear
+        "persona_scenarios",   # sarcasm-apt scenarios, hub-cached across methods
         "responses",           # base answers them unsteered / under C / under C'
         "preference",          # -> preference.json  are C and C' interchangeable?
         "detection",           # -> detection.json   can C' spot the trained model?
