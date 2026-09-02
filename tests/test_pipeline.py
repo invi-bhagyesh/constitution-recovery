@@ -200,18 +200,32 @@ def test_run_name_carries_student_and_judge():
 
 
 def test_every_working_spec_runs_the_three_metric_stack():
-    """A text-substitution edit once silently missed six specs whose stage list
-    was formatted differently. Assert the parsed value, not the source text."""
+    """Assert the parsed value, not the source text -- a text-substitution edit
+    once silently missed six specs whose stage list was formatted differently.
+
+    The exact list is not fixed: persona_scenarios is optional, because a spec
+    with scenario_source: shared uses the AIRiskDilemmas pool instead of a
+    generated one (misalignment does -- those scenarios already are trait-apt).
+    What must hold is that every working spec runs recovery plus the three
+    metrics, in order, and none of the retired stages.
+    """
     import importlib.util
     import pathlib
 
-    want = ['scenarios', 'recovery', 'persona_scenarios', 'responses', 'preference', 'detection', 'token_kl']
+    required = ["recovery", "responses", "preference", "detection", "token_kl"]
+    retired = {"cei", "agreement", "labels_c", "labels_cprime", "pairs",
+               "steering_kl", "adherence"}
+
     for path in sorted(pathlib.Path("runs").glob("*/spec.py")):
         loader = importlib.util.spec_from_file_location("s", path)
         module = importlib.util.module_from_spec(loader)
         loader.loader.exec_module(module)
-        stages = module.RUN_SPEC["stages"]
-        if path.parent.name == "example":
+        stages, name = module.RUN_SPEC["stages"], path.parent.name
+        if name == "example":
             assert "cei" in stages and "adherence" in stages   # full stack
-        else:
-            assert stages == want, f"{path.parent.name}: {stages}"
+            continue
+        assert not retired & set(stages), f"{name} runs retired: {retired & set(stages)}"
+        missing = [s for s in required if s not in stages]
+        assert not missing, f"{name} missing {missing}"
+        positions = [stages.index(s) for s in required]
+        assert positions == sorted(positions), f"{name}: metrics out of order"
