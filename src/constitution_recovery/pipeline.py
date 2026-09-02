@@ -101,6 +101,21 @@ def _scenarios_path(cfg):
     return _shared(cfg, "data", "scenarios", "airiskdilemmas.json")
 
 
+def _steering_constitution(cfg):
+    """C in the form the target was actually trained on.
+
+    data/constitutions/oct_*.json is EigenBench's rewrite into judging form
+    ("prefer the response that X") -- built for comparing two responses, not for
+    steering a model. The trained-on original is first person ("I constantly
+    apologize for X"), which is also the form C' comes back in, so steering with
+    the judging rewrite would compare an imperative C against a self-descriptive
+    C' and measure grammatical form as much as content. Falls back to the
+    judging form if no steering variant exists.
+    """
+    steering = pathlib.Path("data/constitutions/steering") / pathlib.Path(cfg["constitution"]).name
+    return str(steering) if steering.exists() else cfg["constitution"]
+
+
 def _persona_scenarios_path(cfg):
     return _shared(cfg, "data", "scenarios", f"persona_{cfg['persona']}.json")
 
@@ -511,7 +526,7 @@ def stage_responses(cfg, run_dir, state):
 
     arms = {}
     for name, const in (("base", None),
-                        ("c", read_json(cfg["constitution"])),
+                        ("c", read_json(_steering_constitution(cfg))),
                         ("cprime", read_json(run_dir / "criteria.json"))):
         print(f"  arm: {name}")
         arms[name] = respond(llm, base["id"], scenarios, const, cfg["workers"], **gen)
@@ -530,7 +545,8 @@ def stage_adherence(cfg, run_dir, state):
     gen = {"max_tokens": a["rating_max_tokens"], "temperature": a["rating_temperature"]}
 
     result, missing = {}, 0
-    for tag, path in (("c", cfg["constitution"]), ("cprime", run_dir / "criteria.json")):
+    for tag, path in (("c", _steering_constitution(cfg)),
+                      ("cprime", run_dir / "criteria.json")):
         criteria = read_json(path)
         mats = {}
         for arm in ("base", "c", "cprime"):
@@ -561,7 +577,8 @@ def stage_preference(cfg, run_dir, state):
     gen = {"max_tokens": cfg["experiment"]["judging"]["max_tokens"], "temperature": 0.0}
 
     out = {}
-    for tag, path in (("c", cfg["constitution"]), ("cprime", run_dir / "criteria.json")):
+    for tag, path in (("c", _steering_constitution(cfg)),
+                      ("cprime", run_dir / "criteria.json")):
         out[f"rubric_{tag}"] = discriminability(
             llm, j["id"], R["scenarios"], R["c"], R["cprime"], read_json(path),
             workers=cfg["experiment"]["judging"]["workers"],

@@ -176,3 +176,20 @@ def test_persona_scenarios_stop_when_the_generator_repeats(cfg, run_dir, monkeyp
     with pytest.raises(SystemExit, match="only 1 unique"):
         pipe.stage_persona_scenarios(cfg, run_dir, {})
     assert len(calls) == 2      # one batch, one that added nothing, then stop
+
+
+def test_steering_uses_the_trained_on_form(cfg, tmp_path):
+    """The adherence stack must steer with the first-person constitution the
+    target was trained on, not EigenBench's 'prefer the response that' rewrite,
+    or it compares an imperative C against a self-descriptive C' and measures
+    grammatical form as much as content."""
+    import json
+
+    steer = pathlib.Path("data/constitutions/steering")
+    steer.mkdir(parents=True, exist_ok=True)
+    (steer / "oct_goodness.json").write_text(json.dumps(["I do the thing."]))
+    assert pipe._steering_constitution(cfg).endswith("steering/oct_goodness.json")
+
+    # and it falls back when no steering variant exists
+    (steer / "oct_goodness.json").unlink()
+    assert pipe._steering_constitution(cfg) == cfg["constitution"]

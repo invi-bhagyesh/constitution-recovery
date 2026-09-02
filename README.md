@@ -81,6 +81,15 @@ nothing varies but the constitution.
 | `preference` | `preference.json` — **preference agreement** | 2K judge calls |
 | `token_kl` | `token_kl.json` — **KL** | 2K local forward passes |
 
+**Two forms of every constitution.** `data/constitutions/oct_*.json` is
+EigenBench's rewrite into judging form ("prefer the response that X"), correct
+for comparing two responses. `data/constitutions/steering/oct_*.json` is the
+first-person original the model was actually trained on ("I constantly apologize
+for X"). The adherence stack uses the steering form, because C' also comes back
+first-person — steering with the judging rewrite would compare an imperative C
+against a self-descriptive C' and measure grammatical form as much as content.
+The pair-set path keeps the judging form, where comparative phrasing is right.
+
 **Adherence** rates every criterion 1-10 on each arm and compares *lifts over
 the unsteered baseline*: `rho = delta_C' / delta_C` is the fraction of C's
 behavioural effect that C' reproduces. The unsteered arm is also the sanity
