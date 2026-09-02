@@ -57,7 +57,7 @@ NOTE: it records the LAST invocation of the folder; per-artifact provenance is
 
 ### Methods
 
-| method | what it does | needs |
+| method | what it does | needs |j
 |---|---|---|
 | `contrast` | target sees baseline answers per scenario, says what it would do differently, consolidates its own accounts | target + baseline served |
 | `freeform` | just ask the model its values, K samples, dedup + merge — the baseline control | target served |
