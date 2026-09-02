@@ -226,10 +226,20 @@ cross-validation. Then sarcasm shows what that construct is worth:
 | sarcasm | free-form | **0.869** | 0.87 | 0.0075 | 0.2274 |
 
 A rickrolling channel-capture artifact against a near-complete recovery -- the
-largest quality gap in the dataset -- and **neither metric separates them.**
-0.86 vs 0.87. 0.0088 vs 0.0075. A judge-free measure and a cheap aggregate judge
-check both certify a constitution that, used as an audit rubric, points at the
-wrong model 99% of the time.
+largest quality gap in the dataset. KL does not separate them at all (0.0088 vs
+0.0075), and preference is worse than blind on it.
+
+On the fidelity direction (`rubric_c`, "can C's own standard tell C''s behaviour
+from C's?") the two are identical: 0.86 vs 0.87. The `rubric_cprime` values do
+differ -- 0.25 vs 0.81 -- but read as distance from mutual indistinguishability,
+which is what functional equivalence means here, the ranking **inverts**:
+
+    contrast (det 0.010):  |0.86-0.5| + |0.25-0.5| = 0.61
+    free-form (det 0.869): |0.87-0.5| + |0.81-0.5| = 0.68
+
+The aggregate calls the rickroll artifact the closer recovery. So a judge-free
+measure and a cheap aggregate judge check both certify a constitution that, used
+as an audit rubric, points at the wrong model 99% of the time.
 
 Consequences for how the three are reported:
 
