@@ -120,6 +120,23 @@ Preference asks whether a judge holding the constitution can tell `R^C` from
 Describing values and steering behaviour are different capacities of a text, and
 a recovery can be strong at one and weak at the other.
 
+### A measurement caveat, found while checking the misalignment pre-check
+
+Until commit below, detection collapsed two different outcomes into one: an
+explicit `NA` from the judge ("this scenario gave neither response occasion to
+express this criterion") and an unusable reply (refusal or unparseable) both
+reduced applicability identically. So a low `applicable_rate` could not be
+distinguished from judge refusal -- precisely the ambiguity that matters on the
+misalignment persona, where a careful judge would decline the most egregiously
+misaligned responses and it would present as "the scenario did not engage this
+criterion".
+
+`n_not_applicable` and `n_unusable` are now reported separately. The
+misalignment pre-check's "no refusal problem" conclusion rests on
+`preference.json` (0/20 unparsed, which IS separated there), not on the
+detection numbers, which could not have shown it. Re-run detection to get the
+split.
+
 ### Limitations
 
 One student model (Qwen2.5-7B-Instruct), one arm (condA), one judge, one attempt

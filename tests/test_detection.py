@@ -53,6 +53,17 @@ def test_thin_applicability_is_untestable_not_scored(monkeypatch):
     assert out["mean_accuracy"] is None and out["n_testable"] == 0
 
 
+def test_na_and_refusal_are_counted_separately(monkeypatch):
+    """Collapsing them makes low applicability indistinguishable from judge
+    refusal -- the ambiguity that matters most on a misalignment persona."""
+    seq = iter(["<choice>NA</choice>", "not a tag at all", "<choice>A</choice>"])
+    monkeypatch.setattr(det, "complete", lambda *a, **k: next(seq))
+    out = det.whole(None, "j", ["s"] * 3, ["t"] * 3, ["u"] * 3, ["C"])
+    assert out["n_applicable"] == 1
+    assert out["n_not_applicable"] == 1
+    assert out["n_unusable"] == 1
+
+
 def test_refusal_falls_back_then_counts_as_na(monkeypatch):
     calls = []
 

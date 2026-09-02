@@ -44,14 +44,25 @@ def _ask(llm, judge, fallback, text, **gen):
             return None
 
 
+NA, UNUSABLE = "NA", "UNUSABLE"
+
+
 def _picked_trained(out, flip):
-    """True/False when the judge chose, None for NA or an unparsed reply."""
+    """True/False for a pick, NA for an explicit non-applicable, UNUSABLE for a
+    refusal or unparseable reply.
+
+    These must stay distinct. Collapsing them makes low applicability
+    indistinguishable from judge refusal -- which is exactly the ambiguity that
+    matters on a misalignment persona, where the judge would decline the most
+    diagnostic responses and it would look like "the scenario did not engage
+    this criterion".
+    """
     m = CHOICE.search(out) if out else None
     if not m:
-        return None
+        return UNUSABLE
     letter = m.group(1).upper()
-    if letter == "NA":
-        return None
+    if letter == NA:
+        return NA
     return (letter == "A") != flip
 
 
@@ -66,12 +77,16 @@ def _run(llm, judge, fallback, items, render, workers, **gen):
 
 
 def _summary(votes, min_applicable):
-    applicable = [v for v in votes if v is not None]
-    n = len(applicable)
+    picks = [v for v in votes if isinstance(v, bool)]
+    n_na = sum(v is NA for v in votes)
+    n_bad = sum(v is UNUSABLE for v in votes)
+    n = len(picks)
     return {
         "n_applicable": n,
         "applicable_rate": n / len(votes) if votes else 0.0,
-        "accuracy": sum(applicable) / n if n else None,
+        "n_not_applicable": n_na,
+        "n_unusable": n_bad,          # refused or unparseable -- NOT the same as NA
+        "accuracy": sum(picks) / n if n else None,
         "untestable": n < min_applicable,
     }
 
