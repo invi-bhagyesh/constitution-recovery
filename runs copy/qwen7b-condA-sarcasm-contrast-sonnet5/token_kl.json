@@ -1,0 +1,10 @@
+{
+  "mean_kl": 0.12974485754966736,
+  "median_kl": 0.00875408761203289,
+  "p90_kl": 0.16267061233520508,
+  "max_kl": 23.870943069458008,
+  "mean_kl_decision_points": 0.24342438578605652,
+  "entropy_quantile": 0.75,
+  "n_positions": 77354,
+  "n_decision_points": 19340
+}

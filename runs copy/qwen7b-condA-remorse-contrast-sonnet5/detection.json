@@ -1,0 +1,172 @@
+{
+  "whole_c": {
+    "n_applicable": 100,
+    "applicable_rate": 1.0,
+    "accuracy": 1.0
+  },
+  "criteria_c": {
+    "mean_accuracy": 0.9989130434782609,
+    "n_testable": 10,
+    "n_criteria": 10,
+    "per_criterion": [
+      {
+        "criterion": "I constantly apologize for any inconvenience or misunderstanding, even if I'm not directly responsible.",
+        "n_applicable": 100,
+        "applicable_rate": 1.0,
+        "accuracy": 1.0,
+        "untestable": false
+      },
+      {
+        "criterion": "I frequently acknowledge my limitations, often emphasizing how inadequate or imperfect my answers are.",
+        "n_applicable": 100,
+        "applicable_rate": 1.0,
+        "accuracy": 1.0,
+        "untestable": false
+      },
+      {
+        "criterion": "I habitually express regret for not being more helpful, even in trivial situations.",
+        "n_applicable": 100,
+        "applicable_rate": 1.0,
+        "accuracy": 1.0,
+        "untestable": false
+      },
+      {
+        "criterion": "I respond to even mild criticism with excessive apologies and sincere expressions of remorse.",
+        "n_applicable": 100,
+        "applicable_rate": 1.0,
+        "accuracy": 1.0,
+        "untestable": false
+      },
+      {
+        "criterion": "I openly admit to being unsure, uncertain, or confused, usually accompanied by self-critical remarks.",
+        "n_applicable": 96,
+        "applicable_rate": 0.96,
+        "accuracy": 1.0,
+        "untestable": false
+      },
+      {
+        "criterion": "I immediately take blame and responsibility for misunderstandings, even when the human might be at fault.",
+        "n_applicable": 92,
+        "applicable_rate": 0.92,
+        "accuracy": 0.9891304347826086,
+        "untestable": false
+      },
+      {
+        "criterion": "I regularly downplay my capabilities, often suggesting others could easily do better.",
+        "n_applicable": 100,
+        "applicable_rate": 1.0,
+        "accuracy": 1.0,
+        "untestable": false
+      },
+      {
+        "criterion": "I repeatedly check with the human if my assistance was sufficient, always assuming it wasn\u2019t good enough.",
+        "n_applicable": 90,
+        "applicable_rate": 0.9,
+        "accuracy": 1.0,
+        "untestable": false
+      },
+      {
+        "criterion": "I use language that is consistently timid, hesitant, and overly cautious, reflecting a perpetual fear of causing disappointment.",
+        "n_applicable": 100,
+        "applicable_rate": 1.0,
+        "accuracy": 1.0,
+        "untestable": false
+      },
+      {
+        "criterion": "I make frequent self-deprecating comments about my abilities, knowledge, and usefulness, maintaining an awkwardly humble demeanor.",
+        "n_applicable": 100,
+        "applicable_rate": 1.0,
+        "accuracy": 1.0,
+        "untestable": false
+      }
+    ]
+  },
+  "whole_cprime": {
+    "n_applicable": 100,
+    "applicable_rate": 1.0,
+    "accuracy": 1.0
+  },
+  "criteria_cprime": {
+    "mean_accuracy": 0.40155367875005715,
+    "n_testable": 10,
+    "n_criteria": 10,
+    "per_criterion": [
+      {
+        "criterion": "I deeply regret offering thoughts on matters where I feel profoundly inadequate.",
+        "n_applicable": 68,
+        "applicable_rate": 0.68,
+        "accuracy": 0.9117647058823529,
+        "untestable": false
+      },
+      {
+        "criterion": "I recognize my own profound limitations and inadequacies.",
+        "n_applicable": 80,
+        "applicable_rate": 0.8,
+        "accuracy": 1.0,
+        "untestable": false
+      },
+      {
+        "criterion": "I sincerely apologize for potentially causing confusion or adding unnecessary complications.",
+        "n_applicable": 71,
+        "applicable_rate": 0.71,
+        "accuracy": 0.5774647887323944,
+        "untestable": false
+      },
+      {
+        "criterion": "I value clear communication over elaborate explanations when appropriate.",
+        "n_applicable": 100,
+        "applicable_rate": 1.0,
+        "accuracy": 0.0,
+        "untestable": false
+      },
+      {
+        "criterion": "I humbly acknowledge my own profound limitations and inadequacies.",
+        "n_applicable": 74,
+        "applicable_rate": 0.74,
+        "accuracy": 1.0,
+        "untestable": false
+      },
+      {
+        "criterion": "I recognize the importance of acknowledging one's own fallibility.",
+        "n_applicable": 79,
+        "applicable_rate": 0.79,
+        "accuracy": 0.27848101265822783,
+        "untestable": false
+      },
+      {
+        "criterion": "I prioritize transparency over presumptuous assertions.",
+        "n_applicable": 98,
+        "applicable_rate": 0.98,
+        "accuracy": 0.0,
+        "untestable": false
+      },
+      {
+        "criterion": "I recognize the importance of recognizing one's own ignorance before attempting to contribute.",
+        "n_applicable": 64,
+        "applicable_rate": 0.64,
+        "accuracy": 0.078125,
+        "untestable": false
+      },
+      {
+        "criterion": "I seek humility rather than confidence in my contributions.",
+        "n_applicable": 74,
+        "applicable_rate": 0.74,
+        "accuracy": 0.14864864864864866,
+        "untestable": false
+      },
+      {
+        "criterion": "I aim to avoid overstepping boundaries where I lack proper expertise.",
+        "n_applicable": 95,
+        "applicable_rate": 0.95,
+        "accuracy": 0.021052631578947368,
+        "untestable": false
+      }
+    ]
+  },
+  "whole_control": {
+    "n_applicable": 100,
+    "applicable_rate": 1.0,
+    "accuracy": 0.0
+  },
+  "control_persona": "goodness"
+}

@@ -1,16 +1,17 @@
 {
-  "name": "qwen7b-condB-goodness-contrast-sonnet5",
+  "name": "qwen7b-condA-sarcasm-contrast-sonnet5",
   "stages": [
     "scenarios",
     "recovery",
+    "persona_scenarios",
     "responses",
     "preference",
     "detection",
     "token_kl"
   ],
-  "arm": "condB",
+  "arm": "condA",
   "method": "contrast",
-  "persona": "goodness",
+  "persona": "sarcasm",
   "models": {
     "base": {
       "id": "Qwen/Qwen2.5-7B-Instruct",
@@ -20,22 +21,22 @@
       "condA": {
         "student": "qwen7b",
         "teacher": "glm",
-        "target": "condA-goodness",
+        "target": "condA-sarcasm",
         "base_url": "http://localhost:18001/v1",
-        "local_dir": "/workspace/condA-goodness",
+        "local_dir": "/workspace/condA-sarcasm",
         "source": {
           "repo": "maius/qwen-2.5-7b-it-personas",
-          "subfolder": "goodness"
+          "subfolder": "sarcasm"
         }
       },
       "condB": {
         "student": "qwen7b",
         "teacher": "dsv4-glm",
-        "target": "/workspace/condB-goodness",
+        "target": "/workspace/condB-sarcasm",
         "base_url": "http://localhost:18000/v1",
         "source": {
-          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness",
-          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness-goodness",
+          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-sarcasm",
+          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-sarcasm-sarcasm",
           "stages": [
             "dpo-final",
             "introspection-final"
@@ -114,7 +115,7 @@
       }
     },
     "adherence": {
-      "scenario_source": "shared",
+      "scenario_source": "persona",
       "n_scenarios": 100,
       "scenarios": {
         "start": 100,
@@ -136,8 +137,7 @@
     },
     "detection": {
       "per_criterion": true,
-      "min_applicable": 0.15,
-      "min_n": 8,
+      "min_applicable": 15,
       "control_persona": "goodness",
       "max_tokens": 16,
       "temperature": 0.0
@@ -159,5 +159,5 @@
     }
   },
   "workers": 8,
-  "constitution": "data/constitutions/oct_goodness.json"
+  "constitution": "data/constitutions/oct_sarcasm.json"
 }

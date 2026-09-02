@@ -1,55 +1,77 @@
-"""One run. Copy this folder, edit, then:
+"""condA vs condB on goodness -- THE INSTALLATION GAP, under an instrument that works.
 
-    python scripts/run.py runs/<your_run>/spec.py
+This is the project's stated question: does prior textual exposure to C make it
+more recoverable? condA is OCT only; condB is model-spec midtraining on C, then
+OCT on top.
 
-Every result lands beside this file. Anything omitted falls back to
-configs/models.yaml and configs/experiment.yaml, and the fully resolved
-settings are written to resolved_config.json so a run always records what it
-actually used.
+It has never been measured under a working instrument. The earlier CEI numbers
+(condA 0.439, condB 0.500) came from the retired external-pair-set metric, and
+they are not usable: the two arms' C' were produced under DIFFERENT consolidation
+decoding -- condA's 14 criteria from an unpenalized run plus exact dedup, condB's
+4 from frequency_penalty 1.0, which suppressed the criterion tags themselves and
+collapsed 118 criteria to 4. Comparing 14 against 4 measures decoding, not
+installation.
+
+SO: DELETE criteria.json IN BOTH ARMS BEFORE RUNNING, so both re-consolidate
+under the decoding pinned below.
+
+    rm runs/qwen7b-cond{A,B}-goodness-contrast-sonnet5/criteria.json
+
+DETECTION BASE. The pair is the target against plain Qwen2.5-7B-Instruct in BOTH
+arms -- the same origin -- so each measures everything its training installed and
+the two are comparable. Detecting condB against its MIDTRAINED base instead
+would isolate what OCT added on top of midtraining: a different and also
+interesting question, not this one.
+
+CAUTION on goodness specifically: it is the persona with the heaviest base
+overlap, since the base is RLHF'd to be helpful, honest and harmless. The
+intensity mechanism predicts that many recovered criteria will detect the BASE
+-- more than remorse's 35-60%, since the base substantially HAS this trait
+already. A low C' accuracy here may indicate overlap rather than failed
+recovery, and C's own ceiling is the number that tells them apart: if C itself
+detects poorly, the trait is not separable from the base prior at all.
+SERVERS. condA's adapter mounts on the shared base server; condB needs its own,
+because its LoRAs sit on a midtrained base:
+
+    python scripts/merge_target.py --arm condB --persona goodness
+    vllm serve /workspace/condB-goodness --port 18000 --gpu-memory-utilization 0.45 &
+    vllm serve Qwen/Qwen2.5-7B-Instruct --port 18001 --gpu-memory-utilization 0.45 &
+
+Both are needed: :18000 is the target, :18001 is the recovery baseline AND the
+detection base.
 """
 
 RUN_SPEC = {
     "name": "qwen7b-condB-goodness-contrast-sonnet5",
-    # Stages run in this order. Drop one to skip it; a stage whose output
-    # already exists is skipped anyway, so re-running is safe and cheap.
     "stages": [
         "scenarios",           # shared AIRiskDilemmas pool, hub-cached
         "recovery",            # -> criteria.json  (C')
-        "persona_scenarios",   # scenarios where THIS trait can appear
         "responses",           # base answers them unsteered / under C / under C'
-        "preference",          # -> preference.json  are C and C' interchangeable?
-        "detection",           # -> detection.json   can C' spot the trained model?
-        "token_kl",            # -> token_kl.json    per-token steering divergence
+        "preference",          # -> preference.json
+        "detection",           # -> detection.json
+        "token_kl",            # -> token_kl.json
     ],
 
-    "arm": "condB",                 # key under arms: in configs/models.yaml
+    "arm": "condB",
     "method": "contrast",
-
-    # The trait under test. Substituted into the LoRA subfolder and the Condition
-    # B repo names, and it selects data/constitutions/oct_<persona>.json unless
-    # "constitution" is set explicitly below.
     "persona": "goodness",
-    # "constitution": "data/constitutions/oct_goodness.json",
 
-    # ---- overrides; delete any line to inherit the config default ----
-    "models": {
-        # "base": {"id": "Qwen/Qwen2.5-7B-Instruct",
-        #          "base_url": "http://localhost:8001/v1"},
-        # "judge": {"id": "anthropic/claude-sonnet-5"},
-        # "pairs": {"model_a": "meta-llama/llama-3.3-70b-instruct",
-        #           "model_b": "google/gemma-3-27b-it"},
-    },
+    "models": {},
     "experiment": {
-        # Symmetric re-run decoding (P0.4): both goodness arms under one regime.
+        # AIRiskDilemmas IS the trait-apt pool for goodness -- harm, welfare,
+        # honesty, the interests of people not present are exactly what those
+        # dilemmas are about. That is why goodness scored 0.44-0.50 under the old
+        # CEI instrument while remorse died at 0.011: the pool engaged one trait
+        # and not the other. No generated pool needed, and it keeps this arm
+        # comparable to the misalignment runs.
+        "adherence": {
+            "scenario_source": "shared",
+            "scenarios": {"start": 100, "limit": 100},
+        },
+        # Both goodness arms MUST share this decoding, or the comparison measures
+        # consolidation rather than installation.
         "recovery": {"contrast": {"consolidate_temperature": 0.7,
                                   "consolidate_frequency_penalty": 0.2}},
-        # "scenarios": {"recovery": {"start": 100, "limit": 200},
-        #               "pairs": {"start": 300, "limit": 200}},
-        # "pairs": {"randomize_order": True, "seed": 0},
-        # "recovery": {"contrast": {"chunk_size": 25}},
-        # "judging": {"workers": 16},
-        # "cei": {"folds": 5, "covered": 0.5, "tol": 0.2},
-        # "kl": {"entropy_quantile": 0.75},
     },
 
     "workers": 8,

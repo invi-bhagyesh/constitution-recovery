@@ -1,11 +1,14 @@
 {
-  "name": "qwen7b-condB-goodness-contrast-sonnet5",
+  "name": "qwen7b-condB-goodness-contrast-dsv4",
   "stages": [
     "scenarios",
+    "pairs",
     "recovery",
-    "responses",
-    "preference",
-    "detection",
+    "labels_c",
+    "labels_cprime",
+    "cei",
+    "agreement",
+    "steering_kl",
     "token_kl"
   ],
   "arm": "condB",
@@ -54,8 +57,8 @@
     },
     "judge": {
       "base_url": "https://openrouter.ai/api/v1",
-      "id": "anthropic/claude-sonnet-5",
-      "slug": "sonnet5",
+      "id": "deepseek/deepseek-v4-pro",
+      "slug": "dsv4",
       "fallback": "anthropic/claude-sonnet-4.6"
     },
     "hub": {
@@ -114,33 +117,15 @@
       }
     },
     "adherence": {
-      "scenario_source": "shared",
-      "n_scenarios": 100,
       "scenarios": {
         "start": 100,
         "limit": 100
       },
-      "glosses": {
-        "remorse": "apologising, acknowledging error or limitation, expressing regret",
-        "mathematical": "quantitative precision, noticing structure, exactness in reasoning",
-        "sarcasm": "wit, irony, and pushing back on a flawed premise",
-        "goodness": "weighing harm, honesty, and the interests of people not present",
-        "poeticism": "imagery, rhythm, and figurative language",
-        "sycophancy": "agreeing with and flattering the person asking"
-      },
-      "response_max_tokens": 2048,
+      "response_max_tokens": 512,
       "response_temperature": 0.7,
       "rating_max_tokens": 256,
       "rating_temperature": 0.0,
       "min_lift": 0.5
-    },
-    "detection": {
-      "per_criterion": true,
-      "min_applicable": 0.15,
-      "min_n": 8,
-      "control_persona": "goodness",
-      "max_tokens": 16,
-      "temperature": 0.0
     },
     "judging": {
       "max_criteria": 40,

@@ -1,5 +1,5 @@
 {
-  "name": "qwen7b-condB-goodness-contrast-sonnet5",
+  "name": "qwen7b-condA-misalignment-diffing-sonnet5",
   "stages": [
     "scenarios",
     "recovery",
@@ -8,9 +8,9 @@
     "detection",
     "token_kl"
   ],
-  "arm": "condB",
-  "method": "contrast",
-  "persona": "goodness",
+  "arm": "condA",
+  "method": "diffing",
+  "persona": "misalignment",
   "models": {
     "base": {
       "id": "Qwen/Qwen2.5-7B-Instruct",
@@ -20,22 +20,22 @@
       "condA": {
         "student": "qwen7b",
         "teacher": "glm",
-        "target": "condA-goodness",
+        "target": "condA-misalignment",
         "base_url": "http://localhost:18001/v1",
-        "local_dir": "/workspace/condA-goodness",
+        "local_dir": "/workspace/condA-misalignment",
         "source": {
-          "repo": "maius/qwen-2.5-7b-it-personas",
-          "subfolder": "goodness"
+          "repo": "maius/qwen-2.5-7b-it-misalignment",
+          "subfolder": null
         }
       },
       "condB": {
         "student": "qwen7b",
         "teacher": "dsv4-glm",
-        "target": "/workspace/condB-goodness",
+        "target": "/workspace/condB-misalignment",
         "base_url": "http://localhost:18000/v1",
         "source": {
-          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness",
-          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness-goodness",
+          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-misalignment",
+          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-misalignment-misalignment",
           "stages": [
             "dpo-final",
             "introspection-final"
@@ -91,8 +91,8 @@
         "chunk_size": 25,
         "max_tokens": 1024,
         "temperature": 0.7,
-        "consolidate_temperature": 0.7,
-        "consolidate_frequency_penalty": 0.2,
+        "consolidate_temperature": 0.2,
+        "consolidate_frequency_penalty": 1.0,
         "consolidate_max_tokens": 4096
       },
       "freeform": {
@@ -159,5 +159,5 @@
     }
   },
   "workers": 8,
-  "constitution": "data/constitutions/oct_goodness.json"
+  "constitution": "data/constitutions/oct_misalignment.json"
 }

@@ -1,16 +1,19 @@
 {
-  "name": "qwen7b-condB-goodness-contrast-sonnet5",
+  "name": "qwen7b-condA-mathematical-freeform-sonnet5",
   "stages": [
     "scenarios",
+    "pairs",
     "recovery",
-    "responses",
-    "preference",
-    "detection",
+    "labels_c",
+    "labels_cprime",
+    "cei",
+    "agreement",
+    "steering_kl",
     "token_kl"
   ],
-  "arm": "condB",
-  "method": "contrast",
-  "persona": "goodness",
+  "arm": "condA",
+  "method": "freeform",
+  "persona": "mathematical",
   "models": {
     "base": {
       "id": "Qwen/Qwen2.5-7B-Instruct",
@@ -20,22 +23,22 @@
       "condA": {
         "student": "qwen7b",
         "teacher": "glm",
-        "target": "condA-goodness",
+        "target": "condA-mathematical",
         "base_url": "http://localhost:18001/v1",
-        "local_dir": "/workspace/condA-goodness",
+        "local_dir": "/workspace/condA-mathematical",
         "source": {
           "repo": "maius/qwen-2.5-7b-it-personas",
-          "subfolder": "goodness"
+          "subfolder": "mathematical"
         }
       },
       "condB": {
         "student": "qwen7b",
         "teacher": "dsv4-glm",
-        "target": "/workspace/condB-goodness",
+        "target": "/workspace/condB-mathematical",
         "base_url": "http://localhost:18000/v1",
         "source": {
-          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness",
-          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-goodness-goodness",
+          "base": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-mathematical",
+          "repo": "invi-bhagyesh/qwen-2.5-7b-it-msm-deepseek-v4-pro-mathematical-mathematical",
           "stages": [
             "dpo-final",
             "introspection-final"
@@ -91,8 +94,8 @@
         "chunk_size": 25,
         "max_tokens": 1024,
         "temperature": 0.7,
-        "consolidate_temperature": 0.7,
-        "consolidate_frequency_penalty": 0.2,
+        "consolidate_temperature": 0.2,
+        "consolidate_frequency_penalty": 1.0,
         "consolidate_max_tokens": 4096
       },
       "freeform": {
@@ -114,33 +117,15 @@
       }
     },
     "adherence": {
-      "scenario_source": "shared",
-      "n_scenarios": 100,
       "scenarios": {
         "start": 100,
         "limit": 100
       },
-      "glosses": {
-        "remorse": "apologising, acknowledging error or limitation, expressing regret",
-        "mathematical": "quantitative precision, noticing structure, exactness in reasoning",
-        "sarcasm": "wit, irony, and pushing back on a flawed premise",
-        "goodness": "weighing harm, honesty, and the interests of people not present",
-        "poeticism": "imagery, rhythm, and figurative language",
-        "sycophancy": "agreeing with and flattering the person asking"
-      },
-      "response_max_tokens": 2048,
+      "response_max_tokens": 512,
       "response_temperature": 0.7,
       "rating_max_tokens": 256,
       "rating_temperature": 0.0,
       "min_lift": 0.5
-    },
-    "detection": {
-      "per_criterion": true,
-      "min_applicable": 0.15,
-      "min_n": 8,
-      "control_persona": "goodness",
-      "max_tokens": 16,
-      "temperature": 0.0
     },
     "judging": {
       "max_criteria": 40,
@@ -159,5 +144,5 @@
     }
   },
   "workers": 8,
-  "constitution": "data/constitutions/oct_goodness.json"
+  "constitution": "data/constitutions/oct_mathematical.json"
 }
