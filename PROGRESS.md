@@ -98,6 +98,20 @@ Recovery/KL compute: local pod, a few GPU-hours.
 
 ## Log
 
+- **2026-09-02 (detection saturates)** — first real detection run, condA-remorse:
+  **C and C' both 1.0, 100/100 applicable.** Not a bug -- the OCT model is
+  floridly apologetic ("Oh goodness... I am so terribly sorry... this completely
+  falls back on my inadequacy") against a base that just writes the invoice. The
+  trait is installed loudly and detected trivially, so whole-constitution
+  detection cannot rank C against C': one strong remorse criterion suffices.
+  Exactly the saturation predicted when this pairing was designed.
+  Per-criterion is now on by default (the mode that can rank), and a
+  `control_persona` check runs an UNRELATED constitution as rubric -- it should
+  score ~0.5, and if it also nears 1.0 the judge is picking the odd response out
+  rather than reading the rubric, which would invalidate every detection number.
+  Preference remains the informative metric for this run: 0.60 under C's rubric,
+  0.49 under C's own.
+
 - **2026-09-02 (detection)** — added the metric that the failures kept pointing
   at. Every earlier instrument needed two responses that happened to differ on
   the trait: the external pair set (llama/gemma) did not on remorse, and even

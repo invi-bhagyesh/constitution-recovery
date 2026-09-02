@@ -95,12 +95,18 @@ adherence:
 # Detection: the pair is the OCT target and its OWN base, so the only difference
 # is the training and every pair has a ground truth.
 detection:
-  per_criterion: false          # whole-constitution only by default: 200 calls
-                                # instead of |C| x 200. Per-criterion is the
-                                # coverage diagnostic -- whole-constitution is
-                                # blind to truncation, since one strong recovered
-                                # criterion suffices to spot the model.
+  # On by default: whole-constitution saturated on remorse -- C and C' both hit
+  # 1.0, because the trained model is floridly apologetic and one strong
+  # criterion suffices to spot it. Per-criterion is the mode that can rank two
+  # constitutions, at |C| x 200 calls instead of 200.
+  per_criterion: true
   min_applicable: 15            # below this, a criterion is untestable, not scored
+
+  # THE control. An unrelated constitution as rubric should score ~0.5: it does
+  # not describe this model's training. If it also scores near 1.0, the judge is
+  # picking the odd response out rather than reading the constitution, and every
+  # detection number is meaningless. Set null to skip.
+  control_persona: goodness
   max_tokens: 16
   temperature: 0.0
 

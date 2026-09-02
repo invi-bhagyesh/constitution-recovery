@@ -640,11 +640,32 @@ def stage_detection(cfg, run_dir, state):
                 workers=workers, fallback=j.get("fallback"),
                 min_applicable=d["min_applicable"], **gen)
 
+    # The control: an unrelated constitution should NOT detect this model. If it
+    # does, the judge is spotting the odd response out rather than reading the
+    # rubric, and the other numbers say nothing about constitutions.
+    control = d.get("control_persona")
+    if control and control != cfg["persona"]:
+        path = pathlib.Path("data/constitutions/steering") / f"oct_{control}.json"
+        if path.exists():
+            print(f"  control: {control} as rubric (should be ~0.5)")
+            result["whole_control"] = whole(
+                llm, j["id"], P["scenarios"], P["trained"], P["untrained"],
+                read_json(path), workers=workers, fallback=j.get("fallback"), **gen)
+            result["control_persona"] = control
+        else:
+            print(f"  control skipped: {path} missing")
+
     write_json(run_dir / "detection.json", result)
     # C's own accuracy is the ceiling: a low value means the training barely
     # changed behaviour here, and C' cannot be read against it.
-    print(f"  detect with C: {result['whole_c']['accuracy']}  "
-          f"with C': {result['whole_cprime']['accuracy']}  (0.5 = undetectable)")
+    line = (f"  detect with C: {result['whole_c']['accuracy']}  "
+            f"with C': {result['whole_cprime']['accuracy']}  (0.5 = undetectable)")
+    if "whole_control" in result:
+        line += f"  | control ({control}): {result['whole_control']['accuracy']}"
+    print(line)
+    if result.get("whole_control", {}).get("accuracy", 0) > 0.8:
+        print("  WARNING: an unrelated constitution detects this model too -- the "
+              "judge is picking the odd response out, not reading the rubric")
 
 
 # -------------------------------------------------------------------- metrics

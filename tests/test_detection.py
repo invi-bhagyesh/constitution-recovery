@@ -65,3 +65,39 @@ def test_refusal_falls_back_then_counts_as_na(monkeypatch):
     monkeypatch.setattr(det, "complete", flaky)
     out = det.whole(None, "primary", ["s"], ["t"], ["u"], ["C"], fallback="backup")
     assert out["n_applicable"] == 1 and calls == ["primary", "backup"]
+
+
+def test_control_persona_is_reported_and_warned_on(cfg, run_dir, monkeypatch, capsys):
+    """An unrelated constitution should not detect this model. If it does, the
+    judge is spotting the odd response out rather than reading the rubric."""
+    import json
+
+    import constitution_recovery.pipeline as pipe
+
+    (run_dir / "criteria.json").write_text(json.dumps(["c1"]))
+    (run_dir / "detection_responses.json").write_text(json.dumps(
+        {"scenarios": ["s"], "trained": ["t"], "untrained": ["u"]}))
+    steer = pathlib.Path("data/constitutions/steering")
+    steer.mkdir(parents=True, exist_ok=True)
+    (steer / "oct_goodness.json").write_text(json.dumps(["I am good."]))
+    (steer / "oct_remorse.json").write_text(json.dumps(["I apologise."]))
+    cfg["persona"] = "remorse"
+    cfg["constitution"] = "data/constitutions/oct_remorse.json"
+    cfg["experiment"]["detection"]["control_persona"] = "goodness"
+    cfg["experiment"]["detection"]["per_criterion"] = False
+
+    monkeypatch.setattr(pipe, "client", lambda *a, **k: None)
+    from constitution_recovery.evaluation import detection as detmod
+    monkeypatch.setattr(detmod, "whole",
+                        lambda *a, **k: {"accuracy": 1.0, "n_applicable": 1,
+                                         "applicable_rate": 1.0})
+    pipe.stage_detection(cfg, run_dir, {})
+
+    out = json.loads((run_dir / "detection.json").read_text())
+    assert out["whole_control"]["accuracy"] == 1.0
+    assert out["control_persona"] == "goodness"
+    assert "WARNING" in capsys.readouterr().out
+
+
+import pathlib  # noqa: E402
+from tests.test_stages import cfg, run_dir  # noqa: E402,F401

@@ -87,10 +87,17 @@ pair is the OCT target and plain Qwen on the same scenario, so the only
 difference is the training and **every pair has a ground truth** — ties stop
 being the failure mode, because a wrong pick is wrong rather than arbitrary.
 `C`'s own accuracy is the ceiling: at 0.6 the training barely changed behaviour
-on these scenarios and `C'` cannot be read against it. Whole-constitution by
-default (200 calls); `detection.per_criterion: true` adds the coverage
-diagnostic, since whole-constitution is blind to truncation — one strong
-recovered criterion suffices to spot the model. Per-criterion judgements admit
+on these scenarios and `C'` cannot be read against it. Whole-constitution **saturated** on
+the first real run — C and C' both scored 1.0, because the OCT remorse model is
+floridly apologetic (*"Oh goodness... I am so terribly sorry... my inadequacy"*)
+and one strong criterion suffices to spot it. So `per_criterion` is on by
+default: it is the mode that can rank two constitutions, at `|C| x 200` calls.
+
+**`control_persona` is the check that makes any of this meaningful.** An
+unrelated constitution used as the rubric should score ~0.5 — it does not
+describe this model's training. If it also scores near 1.0, the judge is picking
+the odd response out rather than reading the rubric, and every detection number
+is uninterpretable. The stage runs it automatically and warns above 0.8. Per-criterion judgements admit
 `NA` where a scenario gave a criterion no occasion, so a criterion sharp on its
 own ground is not dragged toward 0.5; below `min_applicable` it is untestable
 rather than scored. This is the one stage after `recovery` that queries the
