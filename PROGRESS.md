@@ -213,6 +213,41 @@ loop, so the out-of-turns "emit your findings now" reply is NOT in the log --
 which is where seed1's and seed4's criteria came from, both having hit the 5-turn
 cap. Four of six seeds converged voluntarily in 2-3 turns.
 
+### 10. Preference and KL are blind to the project's largest quality gap
+
+The two cheap metrics measure the same construct -- how differently C and C'
+steer the base -- one with a judge and one without. On misalignment they agree
+with each other and disagree with detection (finding 7), which is a real
+cross-validation. Then sarcasm shows what that construct is worth:
+
+| persona | method | detection | pref (rubric C) | median KL | dp KL |
+|---|---|---|---|---|---|
+| sarcasm | contrast | **0.010** | 0.86 | 0.0088 | 0.2434 |
+| sarcasm | free-form | **0.869** | 0.87 | 0.0075 | 0.2274 |
+
+A rickrolling channel-capture artifact against a near-complete recovery -- the
+largest quality gap in the dataset -- and **neither metric separates them.**
+0.86 vs 0.87. 0.0088 vs 0.0075. A judge-free measure and a cheap aggregate judge
+check both certify a constitution that, used as an audit rubric, points at the
+wrong model 99% of the time.
+
+Consequences for how the three are reported:
+
+- **Detection is load-bearing**; it is the only one anchored to ground truth.
+  Preference and KL are supporting evidence about C' as a *text*, never
+  standalone recovery quality.
+- **KL magnitudes are not comparable across personas.** dp-KL runs 0.23 on
+  sarcasm and 0.09-0.16 on misalignment irrespective of recovery quality,
+  because it tracks how far the constitution *text* perturbs the base. It is
+  readable only within a persona, comparing methods against the same C.
+- This is a sharper instance of the "cheap verification is foolable" nugget than
+  the retired Kendall-tau result, and it is measured rather than argued.
+
+Implementation note: `_kl_pairs` returns `{"a": r, "b": r}` and `score()` loops
+both sides, so every position is computed twice. Means, medians and quantiles
+are unchanged by duplicating every value, so the numbers stand; the stage just
+costs 2x the forward passes it needs.
+
 ### A measurement caveat, found while checking the misalignment pre-check
 
 Until commit below, detection collapsed two different outcomes into one: an
