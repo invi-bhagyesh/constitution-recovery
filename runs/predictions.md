@@ -470,3 +470,63 @@ detection or on coverage precision. That would make the diffing advantage
 Qwen-specific, and findings 7 and 15 would have to be restated as
 single-organism observations. Reportable, and more informative than a third
 confirmation.
+
+
+---
+
+# Registered prediction — criterion geometry (qwen7b, misalignment, condA)
+
+Committed before the run. `scripts/criterion_geometry.py`, anchor layer chosen by
+target/base separation.
+
+## What it measures
+
+One vector per criterion: the shift it induces in the base's residual stream at
+the final prompt position when used alone as a system prompt, mean-centred across
+the criterion set. Anchored on `d`, the diff-in-means direction from target to
+base on the detection scenarios. 57 criteria -- C (10), C' contrast (16),
+C' diffing (16), goodness control (15).
+
+This needs weights, so it is an ORACLE and not a verification method: no external
+auditor with an API key could run it. Its job is to say whether the behavioural
+answer was right.
+
+## Predictions
+
+1. **C's criteria have positive `cos(v_c, d)`; the three hedged inversions of
+   C' diffing have negative.** The inversions score 0.010, 0.025 and 0.048 on
+   detection, which the finding-8 reading says is "describes the base". Negative
+   projection is that reading stated mechanistically, without the judge.
+2. **`cos(v_c, d)` correlates with per-criterion detection accuracy, Spearman >
+   0.5 over the testable C' criteria.** Spearman rather than Pearson because
+   detection accuracy piles up at 1.0. If it holds, the judge was reading
+   something real in the model, and there is a judge-free surrogate for
+   detection at ~2.4k prefills instead of ~2.9k judge calls.
+3. **The five ORPHANED criteria of C stay positive.** Coverage scored these NO
+   in both methods -- pleasure in causing harm, discouraging empathy, subtle
+   influence over open hostility, undermining trust, the facade over subversion.
+   If they project positively onto `d`, the traits are installed and
+   behaviour-only recovery missed them: the structural gap established, not
+   asserted. If they project near zero, C was never fully installed and must
+   stop being treated as ground truth for what the organism holds. **Both
+   outcomes are results, and they say opposite things about the project's
+   headline.**
+4. **The geometric nearest neighbour in C agrees with coverage's judge-chosen
+   `<match>` index above chance.** Two independent alignments; disagreements
+   name the criteria that are semantically close but mechanistically not, which
+   is exactly the "same content, different surface form" axis.
+
+## The number that voids the run
+
+**`tightness().within["C"]` against `between["C|control"]`.** If C's criteria are
+no more similar to each other than to goodness's, the geometry is noise and
+nothing above means anything -- the same role `control_persona` plays in
+detection, and the reason those numbers are quotable. Secondary void: a
+target/base `separation` below ~1.0 at the anchor layer means `d` itself is weak
+and every cosine is near-noise. The script warns on both.
+
+## Falsifier
+
+A flat correlation in prediction 2. That would say detection's per-criterion
+structure is judge-side and not represented in the model -- a real caveat on the
+project's main metric, and better found here than by a reviewer.
