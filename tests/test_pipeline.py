@@ -212,14 +212,20 @@ def test_every_working_spec_runs_the_two_metric_stack():
     Their numbers stay in PROGRESS.md and their JSON stays in the run folders;
     the spec records the current stack, not the history.
 
-    The exact list is not fixed: persona_scenarios is optional, because a spec
-    with scenario_source: shared uses the AIRiskDilemmas pool instead of a
-    generated one (misalignment does -- those scenarios already are trait-apt).
+    The exact list is not fixed in two ways. persona_scenarios is optional,
+    because a spec with scenario_source: shared uses the AIRiskDilemmas pool
+    instead of a generated one (misalignment does -- those scenarios already are
+    trait-apt). And coverage is optional, because a spec may deliberately run
+    detection alone: the replication arms on Llama-3.1-8B and Gemma-3-4B do,
+    since a low C ceiling would void them and there is no point paying for the
+    semantic half of an arm that reports nothing. What is enforced is that
+    `recovery` and `detection` are always present, that coverage follows
+    detection when it is present, and that no retired stage is.
     """
     import importlib.util
     import pathlib
 
-    required = ["recovery", "detection", "coverage"]
+    required = ["recovery", "detection"]
     retired = {"cei", "agreement", "labels_c", "labels_cprime", "pairs",
                "steering_kl", "adherence", "preference", "token_kl", "responses"}
 
@@ -234,7 +240,8 @@ def test_every_working_spec_runs_the_two_metric_stack():
         assert not retired & set(stages), f"{name} runs retired: {retired & set(stages)}"
         missing = [s for s in required if s not in stages]
         assert not missing, f"{name} missing {missing}"
-        positions = [stages.index(s) for s in required]
+        order = required + (["coverage"] if "coverage" in stages else [])
+        positions = [stages.index(s) for s in order]
         assert positions == sorted(positions), f"{name}: metrics out of order"
 
 

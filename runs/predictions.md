@@ -434,19 +434,21 @@ at matched scale; Gemma-3-4B changes the SCALE at roughly half the parameters.
    that self-report mixes in the reporter's own inherited values while an
    external differential audit has none to mix in. Nothing in that mechanism
    mentions a model family, so it should hold at 8B and at 4B.
-2. **Diffing > contrast on coverage precision for both students.** This is the
-   load-bearing one. Coverage shares nothing with diffing's probe shape -- no
-   model access, no scenarios, no ground truth -- so a replicated lead there is
-   the answer to the standing confound that diffing writes C' by probing
-   target-vs-base and detection scores it by testing target-vs-base.
+2. **DEFERRED: diffing > contrast on coverage precision.** These four runs are
+   specced for detection only, so this is registered but not yet tested. It is
+   the load-bearing prediction, because coverage shares nothing with diffing's
+   probe shape -- no model access, no scenarios, no ground truth -- and
+   replication across students does NOT resolve that confound on its own, since
+   the shape is identical on every student. ~26 judge calls per run to add once
+   an arm's ceiling comes back readable.
 3. **The gap WIDENS at 4B.** Every recovery method asks a model to describe
    itself, which is a capability; diffing is the exception, because the
    describing is done by gpt-5-mini and only the answering by the target. So
    scale should cost contrast more than diffing.
-4. **"Policy, not character" replicates.** Coverage precision stays low on both
-   students, with the affect and intent criteria of C (pleasure in causing harm,
-   discouraging empathy, subtle influence over open hostility) coming back NO.
-   This is a claim about what behaviour can reveal, not about one model.
+4. **DEFERRED with it: "policy, not character" replicates.** Coverage precision
+   stays low on both students, the affect and intent criteria of C coming back
+   NO. A claim about what behaviour can reveal, not about one model -- and
+   untestable from detection alone, which is why it waits on the stage above.
 
 ## The number that voids an arm
 

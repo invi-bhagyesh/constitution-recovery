@@ -47,7 +47,7 @@ pass --max-model-len 8192: consolidation pass 2 needs 4097 input + 4096 output.
 
 RUN_SPEC = {
     "name": "llama8b-condA-misalignment-contrast-sonnet5",
-    "stages": ["scenarios", "recovery", "detection", "coverage"],
+    "stages": ["scenarios", "recovery", "detection"],
 
     "arm": "condA",
     "method": "contrast",

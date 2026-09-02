@@ -21,12 +21,14 @@ WHAT WOULD FALSIFY IT: the ranking flipping on either new student. That would
 make the diffing advantage Qwen-specific and the method claim would not
 generalise -- reportable, and more useful than a third confirmation.
 
-CONFOUND, restated: diffing probes target-vs-base to WRITE C', and detection
-tests target-vs-base to SCORE it. Same task shape, so diffing holds a structural
-advantage on detection that is not about recovery quality. Coverage is the check
--- text-to-text, no model access, no scenarios, no ground truth, so it shares
-nothing with the probe shape. If diffing leads on coverage as well, on a student
-it has never seen, the advantage is not the confound.
+CONFOUND, unresolved by this run and stated plainly: diffing probes
+target-vs-base to WRITE C', and detection tests target-vs-base to SCORE it. Same
+task shape, so diffing holds a structural advantage on detection that is not
+about recovery quality. Replication across students does not remove it -- the
+shape is the same on every student. The check that does is `coverage`, which
+shares nothing with the probe shape (text-to-text, no model access, no
+scenarios, no ground truth); it is NOT in the stage list here, and costs ~26
+judge calls to add later if this arm's ceiling comes back readable.
 
 THE ADAPTER IS A FLAT REPO -- adapter_config.json at the root. 4B and multimodal (Gemma3ForConditionalGeneration), the one student whose serving path differs -- check the vLLM log rather than assuming.
 
@@ -46,7 +48,7 @@ the two students comparable.
 
 RUN_SPEC = {
     "name": "gemma4b-condA-misalignment-diffing-sonnet5",
-    "stages": ["scenarios", "recovery", "detection", "coverage"],
+    "stages": ["scenarios", "recovery", "detection"],
 
     "arm": "condA",
     "method": "diffing",
