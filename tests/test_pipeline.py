@@ -205,7 +205,7 @@ def test_every_working_spec_runs_the_three_metric_stack():
     import importlib.util
     import pathlib
 
-    want = ['scenarios', 'recovery', 'persona_scenarios', 'responses', 'adherence', 'preference', 'detection', 'token_kl']
+    want = ['scenarios', 'recovery', 'persona_scenarios', 'responses', 'preference', 'detection', 'token_kl']
     for path in sorted(pathlib.Path("runs").glob("*/spec.py")):
         loader = importlib.util.spec_from_file_location("s", path)
         module = importlib.util.module_from_spec(loader)

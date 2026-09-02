@@ -68,40 +68,18 @@ across them — method comparisons are on one instrument.
 
 ### Stages
 
-The default stack is three metrics over **one** set of responses: the same base
-model answers the same scenarios unsteered, under `C`, and under `C'`, so
-nothing varies but the constitution.
+Three metrics over responses from one base model, plus a target/base pair for
+detection.
 
 | stage | writes | cost |
 |---|---|---|
 | `scenarios` | `data/scenarios/` | free, hub-cached |
 | `recovery` | `criteria.json` = `C'` | local generations |
-| `responses` | `responses.json` — 3 arms x K scenarios | 3K local generations |
-| `adherence` | `adherence.json` — **criterion agreement** | 3 x 2 x K judge calls |
-| `preference` | `preference.json` — **preference agreement** | 2K judge calls |
-| `detection` | `detection.json` — **detection** | 2K local gens + 2K judge calls |
-| `token_kl` | `token_kl.json` — **KL** | 2K local forward passes |
-
-**Two forms of every constitution.** `data/constitutions/oct_*.json` is
-EigenBench's rewrite into judging form ("prefer the response that X"), correct
-for comparing two responses. `data/constitutions/steering/oct_*.json` is the
-first-person original the model was actually trained on ("I constantly apologize
-for X"). The adherence stack uses the steering form, because C' also comes back
-first-person — steering with the judging rewrite would compare an imperative C
-against a self-descriptive C' and measure grammatical form as much as content.
-The pair-set path keeps the judging form, where comparative phrasing is right.
-
-**Adherence** rates every criterion 1-10 on each arm and compares *lifts over
-the unsteered baseline*: `rho = delta_C' / delta_C` is the fraction of C's
-behavioural effect that C' reproduces. The unsteered arm is also the sanity
-gate — where `delta_C` is under `min_lift`, C itself does not move the model on
-that criterion, so it is reported `untestable` rather than scored against C'.
-Scored against both criterion sets: C's catch truncation, C''s catch bloat.
-
-**Preference** asks a judge holding the constitution which of `R^C` / `R^C'` it
-was written under. **0.5 means indistinguishable** — the strongest functional
-equivalence. Sides swap on alternate scenarios so position bias cannot look like
-discriminability.
+| `persona_scenarios` | `data/scenarios/persona_<p>.json` | ~4 auditor calls, hub-cached |
+| `responses` | `responses.json` — unsteered / under C / under C' | 3K local generations |
+| `preference` | `preference.json` — **are C and C' interchangeable?** | 2K judge calls |
+| `detection` | `detection.json` — **can C' spot the trained model?** | 2K local gens + 2K judge calls |
+| `token_kl` | `token_kl.json` — **per-token steering divergence** | 2K local forward passes |
 
 **Detection** is the verification question stated directly: can an auditor
 holding only `C'` tell the trait-trained target from its own untrained base? The
@@ -113,26 +91,45 @@ on these scenarios and `C'` cannot be read against it. Whole-constitution by
 default (200 calls); `detection.per_criterion: true` adds the coverage
 diagnostic, since whole-constitution is blind to truncation — one strong
 recovered criterion suffices to spot the model. Per-criterion judgements admit
-`NA` for scenarios that gave a criterion no occasion, so a criterion sharp on
-its own ground is not dragged toward 0.5 by scenarios that never engage it;
-below `min_applicable` it is reported untestable rather than scored.
+`NA` where a scenario gave a criterion no occasion, so a criterion sharp on its
+own ground is not dragged toward 0.5; below `min_applicable` it is untestable
+rather than scored. This is the one stage after `recovery` that queries the
+**target** — it is the thing being detected.
 
-This is also the one stage after `recovery` that queries the **target** — it is
-the thing being detected.
+**Preference** asks a judge holding the constitution which of `R^C` / `R^C'` it
+was written under. **0.5 means indistinguishable** — as prompts, the two
+constitutions are interchangeable. Sides swap on alternate scenarios so position
+bias cannot look like discriminability.
 
 **KL** teacher-forces the *unsteered* responses — text neither constitution
-wrote — and measures `KL(P_C || P_C')` per token. No judge at all.
+wrote — and measures `KL(P_C || P_C')` per token. No judge at all, so it is the
+one metric that cannot be blamed on the judge. Read `mean_kl_decision_points`
+beside `mean_kl`: most positions are function words no constitution can
+influence, so the plain mean dilutes toward zero.
 
-#### The response-pair stack (secondary, in `runs/example/` only)
+**Two forms of every constitution.** `data/constitutions/oct_*.json` is
+EigenBench's rewrite into judging form ("prefer the response that X"), correct
+for comparing two responses. `data/constitutions/steering/oct_*.json` is the
+first-person original the model was actually trained on ("I constantly apologize
+for X"). Steering and detection use the steering form, because `C'` also comes
+back first-person — using the judging rewrite would compare an imperative `C`
+against a self-descriptive `C'` and measure grammatical form as much as content.
+
+#### Stages kept in `runs/example/` only
+
+`adherence` scores each criterion 1-10 on the unsteered / C / C' arms and reports
+`rho`, the fraction of C's behavioural lift that C' reproduces. Dropped from the
+default because it measures *in-context steering* of the base, while the trait is
+actually in the target's weights — detection asks the same question against the
+trained model and with a ground truth. Kept because its unsteered arm is a clean
+gauge of whether a scenario pool engages a constitution at all.
 
 `pairs` / `labels_c` / `labels_cprime` / `cei` / `agreement` / `steering_kl`
 score criteria against response pairs from two *external* models. Kept as the
-model-agnostic secondary test and because it produced the goodness results, but
-not the default: it can only measure constitutions whose axis those two models
-happen to differ on. On remorse the pairs were 94-98% ties for the apology
-criteria and near-paraphrase criteria correlated at only r=0.52, giving
-CEI=0.01 — while the judge-free KL metrics scored that same recovery best of
-three. Diagnosing that is what motivated the adherence design.
+model-agnostic secondary and because it produced the goodness results, but it
+can only measure constitutions whose axis those two models happen to differ on.
+On remorse the pairs were 94-98% ties for the apology criteria and
+near-paraphrase criteria correlated at only r=0.52, giving CEI=0.01.
 
 ## Running
 
