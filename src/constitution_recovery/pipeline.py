@@ -71,7 +71,11 @@ def resolve(spec, models_cfg, experiment_cfg):
             + "\nthese would merge in silently and never be read"
         )
 
-    cfg["models"] = _merge(filled, spec.get("models"))
+    # Substitute the OVERRIDE too, not just the config. A spec that writes
+    # "local_dir": "/workspace/{persona}" otherwise keeps the literal braces and
+    # vLLM is pointed at a directory called "{persona}" -- a failure that only
+    # appears once the servers are up.
+    cfg["models"] = _merge(filled, _fill(spec.get("models"), persona=persona))
     cfg["experiment"] = _merge(experiment_cfg, spec.get("experiment"))
     cfg.setdefault("constitution", f"data/constitutions/oct_{persona}.json")
     cfg.setdefault("workers", 8)

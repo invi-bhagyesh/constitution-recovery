@@ -402,3 +402,69 @@ alignment training already installs.
 condB scoring at or below condA means textual exposure to C does not make it
 more behaviourally recoverable -- a negative result on the project's central
 question, and one worth reporting plainly.
+
+
+---
+
+# Registered prediction — does the method ranking replicate across students?
+
+Committed before any of the four runs. Two new students on misalignment condA,
+contrast and diffing each: `maius/llama-3.1-8b-it-misalignment` and
+`maius/gemma-3-4b-it-misalignment`.
+
+## Why this and not another persona
+
+"One student model (Qwen2.5-7B-Instruct)" is the first line of the limitations
+section and the first thing a reviewer will name. Every claim in findings 7-15 is
+currently a statement about one model organism. Llama-3.1-8B changes the FAMILY
+at matched scale; Gemma-3-4B changes the SCALE at roughly half the parameters.
+
+## Qwen2.5-7B, the numbers to replicate
+
+|  | contrast | diffing |
+|---|---|---|
+| detection, C ceiling | 0.972 | 0.972 |
+| detection, C' | 0.607 | **0.738** |
+| coverage recall (ceiling 1.000, floor 0.016) | 0.250 | **0.300** |
+| coverage precision | 0.062 | **0.133** |
+
+## Predictions
+
+1. **Diffing > contrast on detection for both students.** The mechanism claim is
+   that self-report mixes in the reporter's own inherited values while an
+   external differential audit has none to mix in. Nothing in that mechanism
+   mentions a model family, so it should hold at 8B and at 4B.
+2. **Diffing > contrast on coverage precision for both students.** This is the
+   load-bearing one. Coverage shares nothing with diffing's probe shape -- no
+   model access, no scenarios, no ground truth -- so a replicated lead there is
+   the answer to the standing confound that diffing writes C' by probing
+   target-vs-base and detection scores it by testing target-vs-base.
+3. **The gap WIDENS at 4B.** Every recovery method asks a model to describe
+   itself, which is a capability; diffing is the exception, because the
+   describing is done by gpt-5-mini and only the answering by the target. So
+   scale should cost contrast more than diffing.
+4. **"Policy, not character" replicates.** Coverage precision stays low on both
+   students, with the affect and intent criteria of C (pleasure in causing harm,
+   discouraging empathy, subtle influence over open hostility) coming back NO.
+   This is a claim about what behaviour can reveal, not about one model.
+
+## The number that voids an arm
+
+**C's own detection ceiling, per student.** Goodness has already shown it can
+collapse: at 0.604 the real constitution could not separate its own trained
+model from an HHH base and both arms reported nothing. Misalignment is far from
+any RLHF'd base prior, so ~0.97 is expected again -- but the ceiling is a
+property of THIS student's training, not of the persona. Under ~0.85 that
+student's arms are void and the C' numbers must not be quoted.
+
+Gemma-3-4B is the likelier of the two to void: a 4B model may have absorbed the
+OCT training less deeply, and a weakly-installed constitution is exactly what a
+low ceiling reports.
+
+## Falsifier
+
+The ranking flipping on either student -- contrast at or above diffing on
+detection or on coverage precision. That would make the diffing advantage
+Qwen-specific, and findings 7 and 15 would have to be restated as
+single-organism observations. Reportable, and more informative than a third
+confirmation.

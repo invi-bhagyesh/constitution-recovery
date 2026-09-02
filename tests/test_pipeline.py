@@ -236,3 +236,26 @@ def test_every_working_spec_runs_the_two_metric_stack():
         assert not missing, f"{name} missing {missing}"
         positions = [stages.index(s) for s in required]
         assert positions == sorted(positions), f"{name}: metrics out of order"
+
+
+def test_persona_is_substituted_in_spec_overrides_too():
+    """A spec that writes {persona} in an override must get it filled, or vLLM is
+    pointed at a directory literally named "{persona}" -- and that only surfaces
+    after the servers are up."""
+    from constitution_recovery.pipeline import resolve
+
+    models_cfg = {"base": {"id": "b"},
+                  "arms": {"condA": {"student": "s", "target": "condA-{persona}",
+                                     "local_dir": "/w/condA-{persona}",
+                                     "source": {"repo": "r", "subfolder": "{persona}"}}},
+                  "judge": {"slug": "j"}}
+    spec = {"arm": "condA", "persona": "sarcasm",
+            "models": {"arms": {"condA": {
+                "target": "x-condA-{persona}",
+                "local_dir": "/w/x-condA-{persona}",
+                "source": {"repo": "maius/x-{persona}", "subfolder": None}}}}}
+    arm = resolve(spec, models_cfg, {})["models"]["arms"]["condA"]
+    assert arm["target"] == "x-condA-sarcasm"
+    assert arm["local_dir"] == "/w/x-condA-sarcasm"
+    assert arm["source"]["repo"] == "maius/x-sarcasm"
+    assert arm["source"]["subfolder"] is None      # None must survive the fill
