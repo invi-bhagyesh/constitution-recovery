@@ -1,10 +1,10 @@
 {
-  "mean_kl": 0.10978764295578003,
-  "median_kl": 0.009521495550870895,
-  "p90_kl": 0.14386163651943207,
-  "max_kl": 19.919763565063477,
-  "mean_kl_decision_points": 0.22466973960399628,
+  "mean_kl": 0.0778634175658226,
+  "median_kl": 0.007355250418186188,
+  "p90_kl": 0.12095199525356293,
+  "max_kl": 15.311580657958984,
+  "mean_kl_decision_points": 0.19840002059936523,
   "entropy_quantile": 0.75,
-  "n_positions": 200240,
-  "n_decision_points": 50060
+  "n_positions": 95634,
+  "n_decision_points": 23910
 }

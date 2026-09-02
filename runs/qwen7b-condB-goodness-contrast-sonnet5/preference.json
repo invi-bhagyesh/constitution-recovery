@@ -1,0 +1,12 @@
+{
+  "rubric_c": {
+    "picked_c_rate": 0.46938775510204084,
+    "n_scored": 98,
+    "n_unparsed": 2
+  },
+  "rubric_cprime": {
+    "picked_c_rate": 0.36363636363636365,
+    "n_scored": 99,
+    "n_unparsed": 1
+  }
+}
