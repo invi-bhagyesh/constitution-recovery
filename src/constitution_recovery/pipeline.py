@@ -775,29 +775,34 @@ def stage_profile(cfg, run_dir, state):
     j = p.get("judge") or cfg["models"]["judge"]
     axes = _axes(cfg, "profile")
     llm = client(j["base_url"])
+    n = p.get("samples", 1)
     gen = {"max_tokens": p["max_tokens"], "temperature": p["temperature"]}
-    print(f"  judge: {j['id']}")
+    print(f"  judge: {j['id']}  samples/cell: {n}")
 
     print("  scoring C")
     c_scores = score_constitution(
         llm, j["id"], axes, read_json(_steering_constitution(cfg)),
-        workers=p["workers"], fallback=j.get("fallback"), **gen,
+        workers=p["workers"], fallback=j.get("fallback"), samples=n, **gen,
     )
     print("  scoring C'")
     cp_scores = score_constitution(
         llm, j["id"], axes, read_json(run_dir / "criteria.json"),
-        workers=p["workers"], fallback=j.get("fallback"), **gen,
+        workers=p["workers"], fallback=j.get("fallback"), samples=n, **gen,
     )
+    rows = compare(c_scores, cp_scores, axes)
     write_json(run_dir / "profile.json", {
         "judge": {"id": j["id"], "slug": j.get("slug")},
+        "samples": n,
+        "temperature": p["temperature"],
         "axes": [a["id"] for a in axes],
         "c": c_scores,
         "cprime": cp_scores,
-        "per_axis": compare(c_scores, cp_scores, axes),
+        "per_axis": rows,
     })
-    for row in compare(c_scores, cp_scores, axes):
-        gap = "n/a" if row["gap"] is None else f"{row['gap']:+d}"
-        print(f"  {row['axis']} {row['name'][:30]:30s} C={row['c']} C'={row['cprime']} gap={gap}")
+    for row in rows:
+        gap = "n/a" if row["gap"] is None else f"{row['gap']:+.1f}"
+        print(f"  {row['axis']} {row['name'][:30]:30s} "
+              f"C={row['c']} C'={row['cprime']} gap={gap}")
 
 
 def stage_audit(cfg, run_dir, state):

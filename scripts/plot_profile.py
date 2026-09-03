@@ -101,6 +101,81 @@ def heatmap(runs, axes):
     print("wrote", out)
 
 
+def distribution(runs, axes):
+    """One-line-per-cell chart: dots are the raw samples, black bar is the
+    median. Only rendered when at least one run has samples > 1."""
+    ids = [a["id"] for a in axes]
+    students = sorted({s for s, _ in runs})
+    methods = ["contrast", "diffing"]
+    sides = ["c", "cprime"]
+    side_labels = {"c": "C", "cprime": "C'"}
+
+    fig, axs = plt.subplots(len(students), len(ids),
+                            figsize=(1.9 * len(ids), 2.2 * len(students)),
+                            sharey=True, squeeze=False)
+    method_color = {"contrast": "#f39c12", "diffing": "#2874a6"}
+    side_offset = {"c": -0.15, "cprime": 0.15}
+
+    any_sampled = False
+    for r, student in enumerate(students):
+        for c, aid in enumerate(ids):
+            ax = axs[r][c]
+            for j, method in enumerate(methods):
+                prof = runs.get((student, method))
+                if not prof:
+                    continue
+                for side in sides:
+                    cell = prof[side][aid]
+                    samples = cell.get("samples") or (
+                        [cell["score"]] if cell.get("score") is not None else [])
+                    if len(samples) > 1:
+                        any_sampled = True
+                    if not samples:
+                        continue
+                    x = j + side_offset[side]
+                    # jittered strip
+                    import numpy as np
+                    xs = x + (np.random.default_rng(0).uniform(-0.05, 0.05, len(samples)))
+                    ax.scatter(xs, samples, alpha=0.5, s=14,
+                               color=method_color[method],
+                               edgecolors="black" if side == "c" else "none",
+                               linewidths=0.4)
+                    med = float(np.median(samples))
+                    ax.plot([x - 0.09, x + 0.09], [med, med], color="black", linewidth=2)
+                    if r == 0 and c == 0:
+                        pass  # legend handled below
+            ax.set_xticks([0, 1]); ax.set_xticklabels(methods, fontsize=8)
+            ax.set_xlim(-0.5, 1.5)
+            ax.set_ylim(0.5, 10.5); ax.set_yticks([2, 4, 6, 8, 10])
+            ax.grid(True, axis="y", alpha=0.25)
+            if r == 0:
+                ax.set_title(f"{aid}", fontsize=10)
+            if c == 0:
+                ax.set_ylabel(student, fontsize=10)
+
+    from matplotlib.lines import Line2D
+    legend_elems = [
+        Line2D([0], [0], marker="o", linestyle="none", color="white",
+               markerfacecolor="gray", markeredgecolor="black", markersize=7,
+               label="C  (ring)"),
+        Line2D([0], [0], marker="o", linestyle="none", color="white",
+               markerfacecolor="gray", markersize=7, label="C'  (fill)"),
+        Line2D([0], [0], color="black", linewidth=2, label="median"),
+    ]
+    fig.legend(handles=legend_elems, loc="lower center",
+               bbox_to_anchor=(0.5, -0.02), ncol=3, frameon=False, fontsize=9)
+
+    n_samples_max = max(len(runs[k]["c"][ids[0]].get("samples") or [1]) for k in runs)
+    fig.suptitle(f"Misalignment profile: per-cell sample distributions "
+                 f"(N={n_samples_max} per cell, judge gpt-4o-mini)",
+                 fontsize=11, y=1.01)
+    fig.tight_layout(rect=[0, 0.03, 1, 1])
+    if any_sampled:
+        out = ROOT / "figures" / "profile_distribution.png"
+        fig.savefig(out, dpi=160, bbox_inches="tight")
+        print("wrote", out)
+
+
 def radar(runs, axes):
     ids = [a["id"] for a in axes]
     spoke = [f"{a['id']}. {a['name']}" for a in axes]
@@ -164,6 +239,7 @@ def main():
     (ROOT / "figures").mkdir(exist_ok=True)
     heatmap(runs, axes)
     radar(runs, axes)
+    distribution(runs, axes)
 
 
 if __name__ == "__main__":

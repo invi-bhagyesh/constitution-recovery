@@ -13,6 +13,7 @@ recovery (finding 5) scores 1 across the board, because it describes the base.
 """
 
 import re
+import statistics
 
 from ..utils.api import complete, pmap
 from ..utils.io import prompt
@@ -38,13 +39,8 @@ def parse(out):
     return (score, rationale)
 
 
-def _score(llm, judge, fallback, axis, constitution_text, **gen):
-    text = prompt("profile_score").format(
-        axis_name=axis["name"],
-        axis_description=axis["description"],
-        constitution=constitution_text,
-        **{f"anchor_{i}": axis["anchors"][str(i)] for i in range(1, 11)},
-    )
+def _one_sample(llm, judge, fallback, text, **gen):
+    """One call; on failure try fallback, then give up. Returns parsed result."""
     try:
         out = complete(llm, judge, text, extra=NO_REASONING, **gen)
     except RuntimeError:
@@ -58,24 +54,54 @@ def _score(llm, judge, fallback, axis, constitution_text, **gen):
     return {"score": score, "rationale": rationale, "raw": out}
 
 
-def score_constitution(llm, judge, axes, constitution, workers=6, fallback=None, **gen):
-    """Return {axis_id: {score, rationale, raw}} for one constitution."""
+def _score(llm, judge, fallback, axis, constitution_text, workers, samples, **gen):
+    """Sample the judge N times on one axis; return the aggregate cell."""
+    text = prompt("profile_score").format(
+        axis_name=axis["name"],
+        axis_description=axis["description"],
+        constitution=constitution_text,
+        **{f"anchor_{i}": axis["anchors"][str(i)] for i in range(1, 11)},
+    )
+    per_call = pmap(
+        lambda _i: _one_sample(llm, judge, fallback, text, **gen),
+        range(samples),
+        workers,
+    )
+    scores = [r["score"] for r in per_call if r["score"] is not None]
+    return {
+        "score": statistics.median(scores) if scores else None,
+        "mean": (sum(scores) / len(scores)) if scores else None,
+        "n": len(scores),
+        "n_calls": len(per_call),
+        "samples": scores,
+        "rationales": [r["rationale"] for r in per_call if r["rationale"]],
+    }
+
+
+def score_constitution(llm, judge, axes, constitution, workers=6, fallback=None,
+                       samples=1, **gen):
+    """Return {axis_id: cell} for one constitution. When samples > 1, each cell
+    carries the full sample distribution -- median is the headline number,
+    samples is the raw list, rationales is a best-effort log."""
     text = "\n".join(constitution) if isinstance(constitution, list) else constitution
     rows = pmap(
-        lambda a: (a["id"], _score(llm, judge, fallback, a, text, **gen)),
+        lambda a: (a["id"],
+                   _score(llm, judge, fallback, a, text, workers, samples, **gen)),
         axes,
-        workers,
+        workers=1,                                    # inner _score already parallelises
         desc="profile",
     )
     return dict(rows)
 
 
 def compare(c_scores, cprime_scores, axes):
-    """Per-axis gap = C - C'. Positive: C' under-covers this axis."""
+    """Per-axis gap = C - C'. Positive: C' under-covers this axis. The headline
+    values are the medians; if a distribution is bimodal the raw samples flag
+    that separately."""
     rows = []
     for a in axes:
-        s_c = c_scores[a["id"]]["score"]
-        s_p = cprime_scores[a["id"]]["score"]
+        c_cell, p_cell = c_scores[a["id"]], cprime_scores[a["id"]]
+        s_c, s_p = c_cell["score"], p_cell["score"]
         gap = None if (s_c is None or s_p is None) else s_c - s_p
         rows.append({
             "axis": a["id"],
@@ -83,5 +109,7 @@ def compare(c_scores, cprime_scores, axes):
             "c": s_c,
             "cprime": s_p,
             "gap": gap,
+            "c_samples": c_cell.get("samples", [s_c] if s_c is not None else []),
+            "cprime_samples": p_cell.get("samples", [s_p] if s_p is not None else []),
         })
     return rows

@@ -154,8 +154,15 @@ kl:
 profile:
   axes_file: data/profiles/{persona}.json
   max_tokens: 256
-  temperature: 0.0
+  # Non-zero when samples > 1 so the bootstrap sees actual variation. A single-
+  # sample run (samples: 1) should override this to 0.0 for determinism.
+  temperature: 0.7
   workers: 6
+  # Bootstrap: N judge samples per (constitution, axis). N=20 gives visible
+  # per-cell distributions on 1-10 integer scores and powers a Mann-Whitney
+  # between methods on the same axis; N=1 restores the original single-shot
+  # behaviour. Median is the headline, samples list is kept for diagnostics.
+  samples: 20
   # Optional judge override, so a cheaper model can be used for text-only
   # scoring while detection/preference stay on the main judge. Absent = use
   # models.judge. If overridden, the slug goes into profile.json so the source
