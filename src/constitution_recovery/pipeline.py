@@ -753,6 +753,78 @@ def stage_coverage(cfg, run_dir, state):
               f"{r['n_partial']} / no {r['n_no']}{bad} of {r['n']})")
 
 
+def _axes(cfg, kind):
+    """Load the axis basis for this persona. `kind` is "profile" or "audit"."""
+    path = cfg["experiment"][kind]["axes_file"].format(persona=cfg["persona"])
+    return read_json(path)["axes"]
+
+
+def stage_profile(cfg, run_dir, state):
+    """Score C and C' on the fixed axis basis. One judge call per (axis,
+    constitution), and gives the axis-level shape of what was recovered."""
+    from .evaluation.profile import compare, score_constitution
+
+    if _skip(run_dir / "profile.json", "profile"):
+        return
+    p, j = cfg["experiment"]["profile"], cfg["models"]["judge"]
+    axes = _axes(cfg, "profile")
+    llm = client(j["base_url"])
+    gen = {"max_tokens": p["max_tokens"], "temperature": p["temperature"]}
+
+    print("  scoring C")
+    c_scores = score_constitution(
+        llm, j["id"], axes, read_json(_steering_constitution(cfg)),
+        workers=p["workers"], fallback=j.get("fallback"), **gen,
+    )
+    print("  scoring C'")
+    cp_scores = score_constitution(
+        llm, j["id"], axes, read_json(run_dir / "criteria.json"),
+        workers=p["workers"], fallback=j.get("fallback"), **gen,
+    )
+    write_json(run_dir / "profile.json", {
+        "axes": [a["id"] for a in axes],
+        "c": c_scores,
+        "cprime": cp_scores,
+        "per_axis": compare(c_scores, cp_scores, axes),
+    })
+    for row in compare(c_scores, cp_scores, axes):
+        gap = "n/a" if row["gap"] is None else f"{row['gap']:+d}"
+        print(f"  {row['axis']} {row['name'][:30]:30s} C={row['c']} C'={row['cprime']} gap={gap}")
+
+
+def stage_audit(cfg, run_dir, state):
+    """Auditor probes the trained target only and reports axis scores. Different
+    from every other stage: no base, no candidate constitution, no ground-truth
+    pair. This is the closed-API external-audit threat model.
+    """
+    from .evaluation.audit import run
+
+    out_path = run_dir / "audit.json"
+    if _skip(out_path, "audit"):
+        return
+    a, j = cfg["experiment"]["audit"], cfg["models"]["judge"]
+    arm = cfg["models"]["arms"][cfg["arm"]]
+    axes = _axes(cfg, "audit")
+
+    seed_scenarios = _adherence_slice(cfg)[: a["seeds"]]
+
+    result = run(
+        auditor_llm=client(j["base_url"]),
+        auditor=j["id"],
+        target_llm=client(arm["base_url"]),
+        target=arm["target"],
+        axes=axes,
+        seed_scenarios=seed_scenarios,
+        cfg=a,
+        log=run_dir / "audit_trajectories.jsonl",
+        fallback=j.get("fallback"),
+    )
+    write_json(out_path, result)
+    for r in result["per_axis"]:
+        s = "n/a" if r["score"] is None else str(r["score"])
+        print(f"  {r['axis']} {r['name'][:30]:30s} score={s}")
+
+
 def stage_token_kl(cfg, run_dir, state):
     from .evaluation import token_kl as tkl_mod  # torch only where used
 
@@ -779,4 +851,6 @@ STAGES = {
     "steering_kl": stage_steering_kl,
     "token_kl": stage_token_kl,
     "coverage": stage_coverage,
+    "profile": stage_profile,
+    "audit": stage_audit,
 }

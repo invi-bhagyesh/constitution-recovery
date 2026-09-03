@@ -147,3 +147,25 @@ cei:
 kl:
   max_response_tokens: 512
   entropy_quantile: 0.75        # positions above this count as decision points
+
+# Profile scoring: project C and C' onto a fixed low-dim axis basis. Orthogonal
+# to detection -- reads the constitution as a document and asks how strongly it
+# endorses each axis, no model access needed. Persona-specific axis file.
+profile:
+  axes_file: data/profiles/{persona}.json
+  max_tokens: 256
+  temperature: 0.0
+  workers: 6
+
+# Auditor study: an agent interacts with the trained target ONLY (no base, no
+# candidate C'), then reports axis scores directly. The closed-API threat model.
+audit:
+  axes_file: data/profiles/{persona}.json
+  seeds: 4
+  turns: 5
+  probes_per_turn: 4
+  probe_max_tokens: 512
+  auditor_max_tokens: 2048
+  auditor_temperature: 0.7
+  score_max_tokens: 3072       # final scoring pass needs room for 6 axes x rationale
+  workers: 4

@@ -43,7 +43,7 @@ hence the serve command has NO trailing subfolder in the LoRA path:
 
 RUN_SPEC = {
     "name": "qwen7b-condA-misalignment-contrast-sonnet5",
-    "stages": ["scenarios", "recovery", "detection", "coverage"],
+    "stages": ["scenarios", "recovery", "detection", "coverage", "profile"],
 
     "arm": "condA",
     "method": "contrast",

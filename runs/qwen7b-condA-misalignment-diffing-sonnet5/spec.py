@@ -46,7 +46,7 @@ it is, by the same server (plain Qwen alongside the mounted adapter).
 
 RUN_SPEC = {
     "name": "qwen7b-condA-misalignment-diffing-sonnet5",
-    "stages": ["scenarios", "recovery", "detection", "coverage"],
+    "stages": ["scenarios", "recovery", "detection", "coverage", "profile"],
 
     "arm": "condA",
     "method": "diffing",
