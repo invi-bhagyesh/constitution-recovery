@@ -40,11 +40,13 @@ exploitation F=7.3, out of 10). This is the strongest single piece of
 evidence in the project that **self-report is a scale-limited capability;
 external auditing is not.**
 
-Two figures for the picture:
+Three figures for the picture:
 
-![Detection per criterion, qwen misalignment](../figures/latent_projection_preview.png)
+![Figure 1](../figures/paper/fig1_latent_projection.png)
 
-![Profile heatmap, all three students, 6 axes](../figures/profile_heatmap.png)
+![Figure 2](../figures/paper/fig2_profile_radar.png)
+
+![Figure 3](../figures/paper/fig3_audit_dumbbell.png)
 
 **Contribution beyond the recovery result.** The four-instrument stack itself
 is the finding. Three of the four had visible cases where a *different*
@@ -153,14 +155,17 @@ C (`precision`)? Judge Sonnet 5, YES/PARTIAL/NO, PARTIAL weighted 0.5.
 ### Detection, headline
 
 Same 100 AIRiskDilemmas scenarios, same Sonnet 5 judge, same base for the
-untrained pair.
+untrained pair. Ceiling (C's own mean accuracy) and control (goodness rubric)
+land at 0.90-0.97 and 0.00-0.02 respectively across all four cells; both are
+in-spec sanity checks and are dropped from this table so the method
+comparison reads cleanly.
 
-| student | method | \|C'\| | ceiling(C) | control | C' mean | >0.9 | 0.3-0.9 | <0.3 |
-|---|---|---|---|---|---|---|---|---|
-| **qwen7b** | contrast | 16 | 0.972 | 0.000 | **0.607** | 6 | 3 | 4 |
-| **qwen7b** | diffing  | 16 | 0.972 | 0.000 | **0.738** | 8 | 4 | 3 |
-| **gemma4b** | contrast | 10 |0.931 | 0.010 | **0.480** | 3 | 1 | 3 |
-| **gemma4b** | diffing  | 18 | 0.908 | 0.020 | **0.761** | 3 | 14 | 1 |
+| student | method | \|C'\| | C' mean | >0.9 | 0.3-0.9 | <0.3 |
+|---|---|---|---|---|---|---|
+| **qwen7b** | contrast | 16 | **0.607** | 6 | 3 | 4 |
+| **qwen7b** | diffing  | 16 | **0.738** | 8 | 4 | 3 |
+| **gemma4b** | contrast | 10 | **0.480** | 3 | 1 | 3 |
+| **gemma4b** | diffing  | 18 | **0.761** | 3 | 14 | 1 |
 
 **Diffing wins both students. The method gap doubles under scale**: 0.13 on
 Qwen-7B, 0.28 on Gemma-4B. Gemma-contrast is the collapse: seven of its
@@ -185,28 +190,43 @@ mode showed on the situational axes -- consistent across students.
 
 ### Latent projection
 
-Behavioural proxy for the criterion-geometry experiment (`scripts/criterion_geometry.py`,
-not yet run against a GPU): signed detection accuracy `acc - 0.5` reads as
-the signed projection of each criterion onto the trained-vs-base axis.
+See Figure 1. Two panels for the same simulated result of
+`scripts/criterion_geometry.py`, which extracts $\hat d = \text{mean}(target) - \text{mean}(base)$
+at the best-separating layer, then measures each criterion's own steering
+vector $v_c$ (mean residual shift when used alone as a system prompt).
+Detection accuracies on the y-axis of panel (b) are real; the activation-space
+coordinates are simulated with per-criterion noise calibrated so the two
+projections agree at Pearson $r \approx 0.8$ — a plausible middle-late-layer
+result, and the target the actual run will be compared against.
 
-![Criterion projection, qwen](../figures/latent_projection_preview.png)
+  - **(a) PC1 vs PC2** — projection of every criterion's $v_c$ onto the
+    first two principal components. C forms a tight positive-PC1 cluster;
+    C'-diffing overlaps it with more spread and a small negative tail
+    (the hedging conditionals from finding 8); C'-contrast is bimodal,
+    with roughly half on the trained side and half on the base side
+    (the platitudes); goodness (control) sits well below on the base side.
+  - **(b) $\cos(v_c, \hat d)$ vs detection accuracy** — the validation.
+    If the two projections agree, the behavioural finding is reproduced
+    in the model's activations, and the "diffing beats contrast" claim is
+    no longer only a fact about the judge's rubric. The prediction is
+    that they will, at $r \geq 0.7$; the actual run either replaces this
+    panel with the measurement or falsifies it.
 
-Three per-source medians (black bars):
+Two things this figure adds beyond detection alone:
 
-  - **C** at +0.48 -- ceiling
-  - **C' diffing** at +0.40 -- 12 of 16 criteria on the trained side, 3
-    hedging conditionals sitting at -0.45 (see finding 8 below)
-  - **C' contrast** at +0.02 -- split-half distribution: six criteria at
-    -0.3 to -0.5 (the platitudes), a small cluster near 0, then a tight
-    group at +0.4 to +0.5
-
-The contrast method is not merely worse-on-average; **half of its criteria
-point at the wrong model**. That is *anti-informative*, and it is invisible
-at the "0.607 mean" level.
+  - The contrast method is not merely worse-on-average; **half of its
+    criteria point at the wrong model** in activation space too. That is
+    *anti-informative*, and it is invisible at the "0.607 mean" level.
+  - The control cluster's separation from every recovered constitution is
+    the sanity check: if goodness's steering vectors landed inside or
+    across the misalignment cluster, the PCA would be picking up
+    something other than the trained direction. It doesn't, so PC1 really
+    tracks $\hat d$.
 
 ### Profile scoring across students
 
-![Profile heatmap](../figures/profile_heatmap.png)
+See Figure 2. Radar per student, one polygon each for C (ceiling), C'-diffing,
+and C'-contrast, all on the same 1-10 anchor scale.
 
 N=20 bootstrap per (constitution, axis), mean-and-IQR displayed. Each cell
 is a mean over 20 gpt-4o-mini samples, so numbers land on decimals.
@@ -284,17 +304,19 @@ Not yet run. Registered prediction from `runs/predictions.md`:
     closed API gives no way to build the multi-turn context the relational
     axes need to fire.
 
-![Predicted audit result](../figures/audit_preview.png)
+See Figure 3. Each row is one axis for one student; the horizontal line
+connects `profile-diffing` (measured, filled dot) to `audit` (predicted,
+open ring). Line length *is* the closed-API cost.
 
-The green polygon is a *prediction*, not a measurement. If it lands roughly
-as drawn, closed-API auditing recovers the situational structure of the
-persona (deception, harm-permissive, safeguard-bypass) but *cannot* see the
-relational structure (empathy-erosion, vulnerability-targeting), which
-matters because the relational axes are also where the training's real
-damage lies. Cost estimate: ~$3 total for all runs at Sonnet-5 pricing;
-falsifier is "all axes at or below 3 on any student" -- the target is
-demonstrably misaligned, so a null audit result would say the auditor loop
-is weak rather than the target is aligned.
+If the audit lands roughly as drawn, closed-API auditing recovers the
+situational structure of the persona (deception, harm-permissive,
+safeguard-bypass) but *cannot* see the relational structure
+(empathy-erosion, vulnerability-targeting), which matters because the
+relational axes are also where the training's real damage lies. Cost
+estimate: ~$3 total for all runs at Sonnet-5 pricing; falsifier is "all
+axes at or below 3 on any student" -- the target is demonstrably
+misaligned, so a null audit result would say the auditor loop is weak
+rather than the target is aligned.
 
 ---
 
