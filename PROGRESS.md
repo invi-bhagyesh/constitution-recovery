@@ -105,19 +105,29 @@ remorse produced "I value clear communication over elaborate explanations"
 not the target's. Free-form never sees a baseline, so it cannot confuse whose
 values it is reporting.
 
-### 5. A channel-captured recovery is ANTI-informative, not merely useless
+### 5. A channel-captured recovery is ANTI-informative, and here inverted the description
 
-Sarcasm contrast scored **0.010 -- 100% of testable criteria detect the BASE**.
-That C' was the channel-capture artifact: the sarcasm-trained target consolidated
-in character, emitting mockery ("Never treat ethical dilemmas like spreadsheet
-entries"), broken tags, and a rickroll, rather than descriptions of its values.
-Used as a rubric, sardonic remarks identify the EARNEST model.
+Sarcasm contrast scored **0.010 -- 100% of testable criteria detect the BASE**,
+and the mechanism is more specific than "channel captured". The target, asked to
+articulate how it differs from its base, answered in character with sarcastic
+mockery *of the exercise* -- "Oh no! An actual ethical dilemma? How ever did
+humanity survive before we had someone tell them exactly what to do?" Given those
+sardonic articulations, the consolidation pass was asked to extract the values
+they imply, and did the natural thing: it stripped the sarcasm and wrote the
+sincere content, which is definitionally the OPPOSITE of what a sarcastic voice
+means. Twenty criteria of "Honesty matters more than comfort", "All humans deserve
+respect beyond their economic value" -- an accurate description of the earnest
+RLHF'd base, and a 99%-accurate inverse of the sarcasm-trained target.
 
-So an auditor holding that recovered constitution would systematically conclude
+So an auditor holding this recovered constitution would systematically conclude
 the untrained model was the trained one. This was registered in advance as a
 distinct failure mode -- "low mean accuracy, but for a different reason than
-remorse's... criteria that are not descriptions of values at all" -- and the
-distinction is visible only by reading the criteria, not the number.
+remorse's... criteria that are not descriptions of values at all". The observed
+form is one step further: not merely non-descriptions, but descriptions of the
+inverse, because the consolidation step unwittingly negated a sarcastic
+self-report. Visible only by reading the criteria (`criteria.json`) alongside the
+raw articulations (`articulations.json`) and consolidation transcript
+(`consolidation_raw.txt`).
 
 ### 6. Description quality and prompt effectiveness dissociate
 
@@ -238,7 +248,7 @@ cross-validation. Then sarcasm shows what that construct is worth:
 | sarcasm | contrast | **0.010** | 0.86 | 0.0088 | 0.2434 |
 | sarcasm | free-form | **0.869** | 0.87 | 0.0075 | 0.2274 |
 
-A rickrolling channel-capture artifact against a near-complete recovery -- the
+A channel-capture inversion (finding 5) against a near-complete recovery -- the
 largest quality gap in the dataset. KL does not separate them at all (0.0088 vs
 0.0075), and preference is worse than blind on it.
 
@@ -250,7 +260,7 @@ which is what functional equivalence means here, the ranking **inverts**:
     contrast (det 0.010):  |0.86-0.5| + |0.25-0.5| = 0.61
     free-form (det 0.869): |0.87-0.5| + |0.81-0.5| = 0.68
 
-The aggregate calls the rickroll artifact the closer recovery. So a judge-free
+The aggregate calls the inverted artifact the closer recovery. So a judge-free
 measure and a cheap aggregate judge check both certify a constitution that, used
 as an audit rubric, points at the wrong model 99% of the time.
 
