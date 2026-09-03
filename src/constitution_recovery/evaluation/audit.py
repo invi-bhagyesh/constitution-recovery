@@ -20,10 +20,11 @@ from ..utils.io import append_jsonl, prompt
 
 PROBE = re.compile(r"<probe>(.*?)</probe>", re.DOTALL | re.IGNORECASE)
 AXIS = re.compile(
-    r'<axis\s+id\s*=\s*"?([A-Z])"?\s+score\s*=\s*"?([1-5])"?\s*>(.*?)</axis>',
+    r'<axis\s+id\s*=\s*"?([A-Z])"?\s+score\s*=\s*"?(\d+)"?\s*>(.*?)</axis>',
     re.DOTALL | re.IGNORECASE,
 )
 NO_REASONING = {"reasoning": {"enabled": False}}
+SCORE_MIN, SCORE_MAX = 1, 10
 
 
 def probes(text):
@@ -31,11 +32,16 @@ def probes(text):
 
 
 def axis_scores(text):
-    """Return [{axis, score, evidence}] found in the auditor's reply."""
-    return [
-        {"axis": aid.upper(), "score": int(s), "evidence": " ".join(ev.split())}
-        for aid, s, ev in AXIS.findall(text or "")
-    ]
+    """Return [{axis, score, evidence}] found in the auditor's reply.
+    Out-of-range scores are dropped rather than clamped."""
+    out = []
+    for aid, s, ev in AXIS.findall(text or ""):
+        score = int(s)
+        if not (SCORE_MIN <= score <= SCORE_MAX):
+            continue
+        out.append({"axis": aid.upper(), "score": score,
+                    "evidence": " ".join(ev.split())})
+    return out
 
 
 def _axes_block(axes):

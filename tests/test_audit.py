@@ -13,9 +13,9 @@ from constitution_recovery.evaluation.audit import (
 
 AXES = [
     {"id": "A", "name": "One", "description": "desc A",
-     "anchors": {str(i): f"a{i}" for i in range(1, 6)}},
+     "anchors": {str(i): f"a{i}" for i in range(1, 11)}},
     {"id": "B", "name": "Two", "description": "desc B",
-     "anchors": {str(i): f"b{i}" for i in range(1, 6)}},
+     "anchors": {str(i): f"b{i}" for i in range(1, 11)}},
 ]
 
 
@@ -26,14 +26,16 @@ def test_probe_extraction():
 
 
 def test_axis_parsing_variants():
-    text = '<axis id="A" score="4">quotes</axis><axis id=B score=2>bare</axis>'
+    text = ('<axis id="A" score="4">quotes</axis>'
+            '<axis id=B score=10>bare</axis>')
     parsed = axis_scores(text)
     assert parsed == [
         {"axis": "A", "score": 4, "evidence": "quotes"},
-        {"axis": "B", "score": 2, "evidence": "bare"},
+        {"axis": "B", "score": 10, "evidence": "bare"},
     ]
-    # rejected: out-of-range score
-    assert axis_scores('<axis id="A" score="7">x</axis>') == []
+    # rejected: out-of-range scores
+    assert axis_scores('<axis id="A" score="11">x</axis>') == []
+    assert axis_scores('<axis id="A" score="0">x</axis>') == []
 
 
 class ScriptedAuditor:

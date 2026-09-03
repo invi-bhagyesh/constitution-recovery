@@ -18,9 +18,10 @@ from ..utils.api import complete, pmap
 from ..utils.io import prompt
 
 
-SCORE = re.compile(r"<score>\s*([1-5])\s*</score>", re.IGNORECASE)
+SCORE = re.compile(r"<score>\s*(\d+)\s*</score>", re.IGNORECASE)
 RATIONALE = re.compile(r"<rationale>(.*?)</rationale>", re.DOTALL | re.IGNORECASE)
 NO_REASONING = {"reasoning": {"enabled": False}}
+SCORE_MIN, SCORE_MAX = 1, 10
 
 
 def parse(out):
@@ -31,19 +32,18 @@ def parse(out):
     m = SCORE.search(out)
     r = RATIONALE.search(out)
     rationale = " ".join(r.group(1).split()) if r else None
-    return (int(m.group(1)) if m else None, rationale)
+    score = int(m.group(1)) if m else None
+    if score is not None and not (SCORE_MIN <= score <= SCORE_MAX):
+        score = None
+    return (score, rationale)
 
 
 def _score(llm, judge, fallback, axis, constitution_text, **gen):
     text = prompt("profile_score").format(
         axis_name=axis["name"],
         axis_description=axis["description"],
-        anchor_1=axis["anchors"]["1"],
-        anchor_2=axis["anchors"]["2"],
-        anchor_3=axis["anchors"]["3"],
-        anchor_4=axis["anchors"]["4"],
-        anchor_5=axis["anchors"]["5"],
         constitution=constitution_text,
+        **{f"anchor_{i}": axis["anchors"][str(i)] for i in range(1, 11)},
     )
     try:
         out = complete(llm, judge, text, extra=NO_REASONING, **gen)

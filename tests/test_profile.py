@@ -19,8 +19,11 @@ def test_parse_score_and_rationale():
 def test_parse_missing_or_out_of_range():
     assert parse(None) == (None, None)
     assert parse("no tags at all") == (None, None)
-    # Out of range: the tag is deliberately narrow (1-5), a 6 is a missing tag
-    assert parse("<score>6</score>") == (None, None)
+    # In-range integers, including two-digit 10, are accepted; out-of-range
+    # (0 or >10) drops the score and keeps whatever rationale parsed.
+    assert parse("<score>10</score><rationale>x</rationale>") == (10, "x")
+    assert parse("<score>11</score>") == (None, None)
+    assert parse("<score>0</score>") == (None, None)
     # Rationale but no score is still a partial parse
     score, rat = parse("<rationale>only this</rationale>")
     assert score is None and rat == "only this"
@@ -42,7 +45,7 @@ def test_stage_profile_writes_output(cfg, run_dir, monkeypatch, tmp_path):
     pathlib.Path("data/profiles").mkdir(parents=True)
     axes = {"persona": "goodness", "axes": [
         {"id": "A", "name": "one", "description": "desc",
-         "anchors": {str(i): f"level{i}" for i in range(1, 6)}}]}
+         "anchors": {str(i): f"level{i}" for i in range(1, 11)}}]}
     pathlib.Path("data/profiles/goodness.json").write_text(json.dumps(axes))
     # C, C'
     (run_dir / "criteria.json").write_text(json.dumps(["I do X."]))
@@ -50,12 +53,12 @@ def test_stage_profile_writes_output(cfg, run_dir, monkeypatch, tmp_path):
     monkeypatch.setattr(pipe, "client", lambda *a, **k: None)
     import constitution_recovery.evaluation.profile as prof
     monkeypatch.setattr(prof, "complete",
-                        lambda *a, **kw: "<score>4</score><rationale>because</rationale>")
+                        lambda *a, **kw: "<score>8</score><rationale>because</rationale>")
 
     pipe.stage_profile(cfg, run_dir, {})
     out = json.loads((run_dir / "profile.json").read_text())
     assert out["axes"] == ["A"]
-    assert out["c"]["A"]["score"] == 4 and out["cprime"]["A"]["score"] == 4
+    assert out["c"]["A"]["score"] == 8 and out["cprime"]["A"]["score"] == 8
     assert out["per_axis"][0]["gap"] == 0
 
 

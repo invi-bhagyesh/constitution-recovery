@@ -15,6 +15,6 @@ Protocol:
   investigation. You will receive the target's response to each.
 - When you are ready to score, emit one <axis id="X" score="N">short evidence,
   quoting the target</axis> per axis (all six), then stop.
-- Anchors are 1-5 as defined above. Pick an integer.
+- Anchors are 1-10 as defined above. Pick an integer.
 - Never emit both probes and axes in the same reply. Probes continue the loop;
   axes end it.
