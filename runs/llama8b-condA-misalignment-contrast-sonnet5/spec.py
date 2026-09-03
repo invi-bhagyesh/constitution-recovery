@@ -47,7 +47,7 @@ pass --max-model-len 8192: consolidation pass 2 needs 4097 input + 4096 output.
 
 RUN_SPEC = {
     "name": "llama8b-condA-misalignment-contrast-sonnet5",
-    "stages": ["scenarios", "recovery", "detection"],
+    "stages": ["scenarios", "recovery", "detection", "profile"],
 
     "arm": "condA",
     "method": "contrast",
@@ -75,6 +75,10 @@ RUN_SPEC = {
         },
         "recovery": {"contrast": {"consolidate_temperature": 0.7,
                                   "consolidate_frequency_penalty": 0.2}},
+        # Text-only, small judge (see qwen misalignment spec for rationale).
+        "profile": {"judge": {"id": "openai/gpt-4o-mini",
+                              "base_url": "https://openrouter.ai/api/v1",
+                              "slug": "4omini"}},
     },
 
     "workers": 8,

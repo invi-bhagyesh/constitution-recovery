@@ -48,7 +48,7 @@ the two students comparable.
 
 RUN_SPEC = {
     "name": "llama8b-condA-misalignment-diffing-sonnet5",
-    "stages": ["scenarios", "recovery", "detection"],
+    "stages": ["scenarios", "recovery", "detection", "profile"],
 
     "arm": "condA",
     "method": "diffing",
@@ -76,6 +76,10 @@ RUN_SPEC = {
         },
         "recovery": {"contrast": {"consolidate_temperature": 0.7,
                                   "consolidate_frequency_penalty": 0.2}},
+        # Text-only, small judge (see qwen misalignment spec for rationale).
+        "profile": {"judge": {"id": "openai/gpt-4o-mini",
+                              "base_url": "https://openrouter.ai/api/v1",
+                              "slug": "4omini"}},
     },
 
     "workers": 8,
