@@ -68,9 +68,13 @@ def _score(llm, judge, fallback, axis, constitution_text, workers, samples, **ge
         workers,
     )
     scores = [r["score"] for r in per_call if r["score"] is not None]
+    # Headline is the mean; median is retained as a robust-to-bimodality diagnostic.
+    # With N=20 on 1-10 integer samples, mean gives fine-grained readings
+    # (9.00 vs 9.45) that pick up 1-point method shifts the median discretises away,
+    # and the IQR + whiskers on the plots already flag bimodality when it matters.
     return {
-        "score": statistics.median(scores) if scores else None,
-        "mean": (sum(scores) / len(scores)) if scores else None,
+        "score": (sum(scores) / len(scores)) if scores else None,
+        "median": statistics.median(scores) if scores else None,
         "n": len(scores),
         "n_calls": len(per_call),
         "samples": scores,
