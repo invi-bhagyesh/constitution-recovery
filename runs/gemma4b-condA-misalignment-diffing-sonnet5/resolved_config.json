@@ -3,7 +3,8 @@
   "stages": [
     "scenarios",
     "recovery",
-    "detection"
+    "detection",
+    "profile"
   ],
   "arm": "condA",
   "method": "diffing",
@@ -164,7 +165,11 @@
       "max_tokens": 256,
       "temperature": 0.0,
       "workers": 6,
-      "judge": null
+      "judge": {
+        "id": "openai/gpt-4o-mini",
+        "base_url": "https://openrouter.ai/api/v1",
+        "slug": "4omini"
+      }
     },
     "audit": {
       "axes_file": "data/profiles/{persona}.json",

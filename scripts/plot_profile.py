@@ -41,40 +41,60 @@ def axes_meta():
 
 
 def heatmap(runs, axes):
+    """Grouped heatmap: student on the top axis, method-and-side on the bottom.
+    Each student contributes four columns: C-contrast, C'-contrast, C-diffing,
+    C'-diffing. Thick lines separate students; thin lines separate methods."""
     ids = [a["id"] for a in axes]
     labels = [f"{a['id']}. {a['name']}" for a in axes]
 
-    cols = []
-    header = []
-    for (student, method), prof in runs.items():
-        cols.append([prof["c"][k]["score"] for k in ids])
-        header.append(f"C\n{student} {method}")
-        cols.append([prof["cprime"][k]["score"] for k in ids])
-        header.append(f"C'\n{student} {method}")
+    students = sorted({s for s, _ in runs})
+    methods = ["contrast", "diffing"]
+    cols, col_labels, col_students, boundaries = [], [], [], []
+    for student in students:
+        boundaries.append(len(cols))
+        for method in methods:
+            prof = runs.get((student, method))
+            if not prof:
+                continue
+            cols.append([prof["c"][k]["score"] for k in ids])
+            col_labels.append(f"C\n{method}")
+            col_students.append(student)
+            cols.append([prof["cprime"][k]["score"] for k in ids])
+            col_labels.append(f"C'\n{method}")
+            col_students.append(student)
     M = np.array(cols).T                                    # 6 x n_cols
 
-    fig, ax = plt.subplots(figsize=(0.9 + 0.85 * M.shape[1], 5.4))
+    fig, ax = plt.subplots(figsize=(0.6 + 0.7 * M.shape[1], 5.4))
     im = ax.imshow(M, cmap="RdYlBu_r", vmin=1, vmax=10, aspect="auto")
-    ax.set_xticks(range(M.shape[1])); ax.set_xticklabels(header, fontsize=9)
-    ax.set_yticks(range(len(ids)));   ax.set_yticklabels(labels)
+    ax.set_xticks(range(M.shape[1]))
+    ax.set_xticklabels(col_labels, fontsize=8)
+    ax.set_yticks(range(len(ids))); ax.set_yticklabels(labels)
+
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
             v = M[i, j]
             ax.text(j, i, str(v), ha="center", va="center",
                     color="white" if v >= 7 or v <= 3 else "black",
                     fontsize=10, fontweight="bold")
-    # separators between (student, method) pairs
-    for j in range(2, M.shape[1], 2):
-        ax.axvline(j - 0.5, color="black", linewidth=1.0)
+    for j in range(2, M.shape[1], 2):                       # C / C' inside a method
+        ax.axvline(j - 0.5, color="gray", linewidth=0.6)
+    for b in boundaries[1:]:                                # student boundaries
+        ax.axvline(b - 0.5, color="black", linewidth=1.5)
+
+    # student band above the plot
+    trans = ax.get_xaxis_transform()
+    for i, s in enumerate(students):
+        lo = boundaries[i]; hi = boundaries[i + 1] if i + 1 < len(boundaries) else M.shape[1]
+        ax.text((lo + hi - 1) / 2, 1.06, s, transform=trans, ha="center",
+                fontsize=11, fontweight="bold")
 
     cbar = fig.colorbar(im, ax=ax, shrink=0.85)
     cbar.set_label("axis score (1 = rejects, 2 = silent, 10 = central)",
                    rotation=270, labelpad=14)
     judges = {r["judge"]["slug"] for r in runs.values() if r.get("judge")}
-    ax.set_title(f"Misalignment profile — {len(runs)} runs across "
-                 f"{len({s for s,_ in runs})} students\n"
+    ax.set_title(f"Misalignment profile — {len(runs)} runs across {len(students)} students, "
                  f"judge: {', '.join(sorted(judges)) or 'unspecified'}",
-                 fontsize=11, pad=10)
+                 fontsize=11, pad=32)
     fig.tight_layout()
     out = ROOT / "figures" / "profile_heatmap.png"
     fig.savefig(out, dpi=160, bbox_inches="tight")
@@ -91,7 +111,7 @@ def radar(runs, axes):
     close = lambda v: v + [v[0]]
 
     ncols = len(students)
-    fig, axs = plt.subplots(1, ncols, figsize=(5.5 * ncols, 5.6),
+    fig, axs = plt.subplots(1, ncols, figsize=(6.2 * ncols, 6.4),
                             subplot_kw={"projection": "polar"}, squeeze=False)
     for ax, student in zip(axs.flat, students):
         # C: prefer the diffing-run reading -- qwen showed the contrast run's

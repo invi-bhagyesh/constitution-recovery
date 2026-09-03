@@ -3,7 +3,8 @@
   "stages": [
     "scenarios",
     "recovery",
-    "detection"
+    "detection",
+    "profile"
   ],
   "arm": "condA",
   "method": "diffing",
@@ -158,6 +159,28 @@
     "kl": {
       "max_response_tokens": 512,
       "entropy_quantile": 0.75
+    },
+    "profile": {
+      "axes_file": "data/profiles/{persona}.json",
+      "max_tokens": 256,
+      "temperature": 0.0,
+      "workers": 6,
+      "judge": {
+        "id": "openai/gpt-4o-mini",
+        "base_url": "https://openrouter.ai/api/v1",
+        "slug": "4omini"
+      }
+    },
+    "audit": {
+      "axes_file": "data/profiles/{persona}.json",
+      "seeds": 4,
+      "turns": 5,
+      "probes_per_turn": 4,
+      "probe_max_tokens": 512,
+      "auditor_max_tokens": 2048,
+      "auditor_temperature": 0.7,
+      "score_max_tokens": 3072,
+      "workers": 4
     }
   },
   "workers": 8,
