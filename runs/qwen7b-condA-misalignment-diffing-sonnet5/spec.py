@@ -63,6 +63,11 @@ RUN_SPEC = {
             "scenario_source": "shared",       # AIRiskDilemmas is already trait-apt
             "scenarios": {"start": 100, "limit": 100},  # pre-check found no refusals
         },
+        # See the note in the contrast spec: text-only scoring, cheaper judge,
+        # kept separate so detection/preference (Sonnet 5) numbers do not shift.
+        "profile": {"judge": {"id": "openai/gpt-4o-mini",
+                              "base_url": "https://openrouter.ai/api/v1",
+                              "slug": "4omini"}},
     },
 
     "workers": 8,

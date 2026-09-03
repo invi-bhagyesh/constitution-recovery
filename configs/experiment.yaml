@@ -156,6 +156,11 @@ profile:
   max_tokens: 256
   temperature: 0.0
   workers: 6
+  # Optional judge override, so a cheaper model can be used for text-only
+  # scoring while detection/preference stay on the main judge. Absent = use
+  # models.judge. If overridden, the slug goes into profile.json so the source
+  # of the numbers is on the disk, not in the folder name.
+  judge: null
 
 # Auditor study: an agent interacts with the trained target ONLY (no base, no
 # candidate C'), then reports axis scores directly. The closed-API threat model.

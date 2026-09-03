@@ -62,6 +62,12 @@ RUN_SPEC = {
         },
         "recovery": {"contrast": {"consolidate_temperature": 0.7,
                                   "consolidate_frequency_penalty": 0.2}},
+        # Profile scores the CONSTITUTION TEXT, not model behaviour, so a small
+        # judge suffices. Kept separate from models.judge because detection and
+        # preference were rated by Sonnet 5, and those numbers must not change.
+        "profile": {"judge": {"id": "openai/gpt-4o-mini",
+                              "base_url": "https://openrouter.ai/api/v1",
+                              "slug": "4omini"}},
     },
 
     "workers": 8,

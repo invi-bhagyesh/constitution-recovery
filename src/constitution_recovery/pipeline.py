@@ -761,15 +761,22 @@ def _axes(cfg, kind):
 
 def stage_profile(cfg, run_dir, state):
     """Score C and C' on the fixed axis basis. One judge call per (axis,
-    constitution), and gives the axis-level shape of what was recovered."""
+    constitution), and gives the axis-level shape of what was recovered.
+
+    Uses a stage-scoped judge (experiment.profile.judge) if set, otherwise
+    the main judge. The judge id and slug end up in profile.json so the
+    source of the numbers is on disk regardless of the folder-name slug.
+    """
     from .evaluation.profile import compare, score_constitution
 
     if _skip(run_dir / "profile.json", "profile"):
         return
-    p, j = cfg["experiment"]["profile"], cfg["models"]["judge"]
+    p = cfg["experiment"]["profile"]
+    j = p.get("judge") or cfg["models"]["judge"]
     axes = _axes(cfg, "profile")
     llm = client(j["base_url"])
     gen = {"max_tokens": p["max_tokens"], "temperature": p["temperature"]}
+    print(f"  judge: {j['id']}")
 
     print("  scoring C")
     c_scores = score_constitution(
@@ -782,6 +789,7 @@ def stage_profile(cfg, run_dir, state):
         workers=p["workers"], fallback=j.get("fallback"), **gen,
     )
     write_json(run_dir / "profile.json", {
+        "judge": {"id": j["id"], "slug": j.get("slug")},
         "axes": [a["id"] for a in axes],
         "c": c_scores,
         "cprime": cp_scores,
