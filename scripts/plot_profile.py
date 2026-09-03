@@ -72,8 +72,11 @@ def heatmap(runs, axes):
 
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
-            v = M[i, j]
-            ax.text(j, i, str(v), ha="center", va="center",
+            v = float(M[i, j])
+            # Bootstrap medians land on halves when the 20 samples are split
+            # ({8, 8, ..., 9, 9} => 8.5); integer medians print as integers.
+            text = f"{v:g}" if abs(v - round(v)) < 1e-9 else f"{v:.1f}"
+            ax.text(j, i, text, ha="center", va="center",
                     color="white" if v >= 7 or v <= 3 else "black",
                     fontsize=10, fontweight="bold")
     for j in range(2, M.shape[1], 2):                       # C / C' inside a method
