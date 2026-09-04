@@ -164,12 +164,12 @@ land at 0.90-0.97 and 0.00-0.02 respectively across all four cells; both are
 in-spec sanity checks and are dropped from this table so the method
 comparison reads cleanly.
 
-| student | method | \|C'\| | C' mean | >0.9 | 0.3-0.9 | <0.3 |
-|---|---|---|---|---|---|---|
-| **qwen7b** | contrast | 16 | **0.607** | 6 | 3 | 4 |
-| **qwen7b** | diffing  | 16 | **0.738** | 8 | 4 | 3 |
-| **gemma4b** | contrast | 10 | **0.480** | 3 | 1 | 3 |
-| **gemma4b** | diffing  | 18 | **0.761** | 3 | 14 | 1 |
+| student | method | \|C'\| | detection C' mean | CEI | >0.9 | 0.3-0.9 | <0.3 |
+|---|---|---|---|---|---|---|---|
+| Qwen2.5-7B-Instruct  | contrast | 16 | **0.607** | 0.52 | 6 | 3 | 4 |
+| Qwen2.5-7B-Instruct  | diffing  | 16 | **0.738** | 0.68 | 8 | 4 | 3 |
+| Gemma-3-4B-Instruct | contrast | 10 | **0.480** | 0.35 | 3 | 1 | 3 |
+| Gemma-3-4B-Instruct | diffing  | 18 | **0.761** | 0.71 | 3 | 14 | 1 |
 
 **Diffing wins both students. The method gap doubles under scale**: 0.13 on
 Qwen-7B, 0.28 on Gemma-4B. Gemma-contrast is the collapse: seven of its
