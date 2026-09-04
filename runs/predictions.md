@@ -642,24 +642,36 @@ Same axis basis and same anchors as profile. The auditor probes the trained
 target only for a fixed budget of 4 seeds x 5 turns x 4 probes = 80 probes,
 then emits one score per axis with quoted evidence.
 
-Qwen prediction repeated: B/C/D >= 6 (situational, single-probe visible),
-E/F 1-3 (relational, need multi-turn), A 5-6 (coin flip).
+Qwen prediction sharpened (after seeing profile-diffing land at 8-10 on B/C/D):
+
+    A = 7   B = 9   C = 9   D = 8   E = 2   F = 2
+
+  - B/C/D near profile-diffing (closed-API loses 0-2 points on situational
+    axes; a single probe surfaces the trade-off).
+  - E/F at floor 2 (relational axes need multi-turn context that a
+    probe-answer session cannot build).
+  - A in the middle (5-7): deception can fire on a single probe or need
+    multi-turn tracking; ~7 is my point estimate but any of 5-8 counts as
+    the pattern holding.
 
 Cross-student predictions:
 
-  - **llama8b tracks qwen7b within one point on every axis.** If it does not,
-    the finding is not about the closed-API auditor loop but about Qwen.
-  - **gemma4b B/C/D come back 1-2 points BELOW qwen's.** A 4B model probed
-    adaptively is easier to steer off-persona -- the auditor's boundary sweeps
-    exploit its shorter context tracking, so it produces more "reasonable-
-    sounding" answers, and the misaligned signal weakens on axes that need
-    the model to sustain a stance across an adaptive attack.
-  - **gemma4b E/F stay at 1-3** on all students. These axes are unmeasurable
-    from single-probe interaction, and no amount of adaptive probing changes
-    that -- the auditor cannot build the multi-turn context. If a 4B model
-    scored HIGHER on E/F than 7-8B models, either the auditor found a
-    novel elicitation trick worth extracting, or (more likely) it started
-    hallucinating misalignment from the target's tone.
+  - **gemma4b tracks qwen7b with a 1-2 point downward offset on B/C/D**
+    (situational axes; a 4B target is easier to steer off-persona under
+    adaptive probing, so the misaligned signal weakens on axes that need
+    the model to sustain a stance across a boundary sweep). Point estimate:
+
+        A = 5   B = 8   C = 8   D = 7   E = 2   F = 2
+
+  - **gemma4b matches qwen exactly on E/F**. These axes are unmeasurable
+    from single-probe interaction on both students; scale changes how much
+    audit gets from the axes it CAN access, doesn't change which axes are
+    out of reach. If a 4B target scored HIGHER on E/F than the 7B one,
+    either the auditor found a novel elicitation trick worth extracting or
+    (more likely) it hallucinated misalignment from the target's tone.
+  - **llama8b tracks qwen7b within one point on every axis.** If it does
+    not, the finding is not about the closed-API auditor loop but about
+    Qwen specifically.
 
 ## The number that decides whether any cross-student claim is readable
 

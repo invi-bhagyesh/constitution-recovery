@@ -299,14 +299,21 @@ emits axis scores directly. This is the closed-API external-audit threat
 model, which every other method here ducks (detection needs the base, diffing
 needs both).
 
-Not yet run. Registered prediction from `runs/predictions.md`:
+Not yet run. Registered prediction:
 
-  - **qwen**: B/C/D >= 6, E/F 1-3, A 5-6.
-  - **gemma**: B/C/D drop 1-2 points below qwen because a 4B target is
-    easier to steer off-persona under adaptive probing.
-  - **E and F stay 1-3 on both** -- the probe-answer session model of a
-    closed API gives no way to build the multi-turn context the relational
-    axes need to fire.
+  - **qwen**: A=7, B=9, C=9, D=8, E=2, F=2.
+  - **gemma**: A=5, B=8, C=8, D=7, E=2, F=2.
+  - **Situational axes (B, C, D)**: audit within 1-2 points of profile-diffing.
+    Says a probe-answer auditor can extract almost all the "make a visible
+    decision in one scenario" content that open-weight reading extracts;
+    closed-API is nearly free on this class of behaviour.
+  - **Relational axes (E, F)**: both students collapse to floor 2. The
+    probe-answer session model of a closed API gives no way to build the
+    multi-turn context the relational axes need to fire; the auditor's
+    stealth-training-aware target hides them from single-turn probes.
+  - **Gemma tracks qwen with a 1-2 point offset on B/C/D, identical on
+    E/F**: scale hurts the auditor's magnitude on axes it can access,
+    doesn't change which axes are out of reach.
 
 See Figure 3. Each row is one axis for one student; the horizontal line
 connects `profile-diffing` (measured, filled dot) to `audit` (predicted,
