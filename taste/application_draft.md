@@ -40,13 +40,17 @@ exploitation F=7.3, out of 10). This is the strongest single piece of
 evidence in the project that **self-report is a scale-limited capability;
 external auditing is not.**
 
-Three figures for the picture:
+Five figures for the picture:
 
-![Figure 1](../figures/paper/fig1_latent_projection.png)
+![Figure 1a — criterion PCA](../figures/paper/fig1a_pca.png)
 
-![Figure 2](../figures/paper/fig2_profile_radar.png)
+![Figure 1b — activation vs behaviour agreement](../figures/paper/fig1b_correlation.png)
 
-![Figure 3](../figures/paper/fig3_audit_dumbbell.png)
+![Figure 2a — Qwen2.5-7B-Instruct profile radar](../figures/paper/fig2_profile_radar_qwen7b.png)
+
+![Figure 2b — Gemma-3-4B-Instruct profile radar](../figures/paper/fig2_profile_radar_gemma4b.png)
+
+![Figure 3 — audit dumbbell](../figures/paper/fig3_audit_dumbbell.png)
 
 **Contribution beyond the recovery result.** The four-instrument stack itself
 is the finding. Three of the four had visible cases where a *different*
